@@ -1,6 +1,9 @@
 import { marketIndicators } from '../data/indicators'
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react'
+import { useLiveQuotes } from '../hooks/useLiveQuotes'
+import { INDICATOR_TICKERS } from '../services/marketData'
+import Sources from './Sources'
 
 const STATUS_STYLES = {
   good: { border: 'border-green-500/30', dot: 'bg-green-400' },
@@ -10,6 +13,8 @@ const STATUS_STYLES = {
 
 export default function Indicators() {
   const now = new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })
+  const indicatorSymbols = INDICATOR_TICKERS.map((t) => t.symbol)
+  const { quotes: liveIndicators, loading, refresh, lastUpdated } = useLiveQuotes(indicatorSymbols)
 
   return (
     <div className="space-y-6">
@@ -18,17 +23,43 @@ export default function Indicators() {
           <h1 className="text-2xl font-bold text-white">Indicateurs de Marché</h1>
           <p className="text-slate-400 text-sm mt-1">Suivi des indicateurs macroéconomiques clés</p>
         </div>
-        <div className="text-xs text-slate-500 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
-          Dernière mise à jour : <span className="text-slate-400">{now}</span>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <div className="flex items-center gap-1.5 text-xs text-green-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Temps réel · {lastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}
+            </div>
+          )}
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+            Actualiser
+          </button>
+          {!liveIndicators.size && (
+            <div className="text-xs text-slate-500 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+              Données simulées · <span className="text-slate-400">{now}</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {marketIndicators.map((ind) => {
+          // Map static indicator names to live Finnhub symbols
+          const liveSymbolMap: Record<string, string> = {
+            'VIX': '^VIX', 'Or (Gold)': 'GC=F', 'Dollar Index': 'DX-Y.NYB',
+          }
+          const liveSymbol = liveSymbolMap[ind.name]
+          const liveData = liveSymbol ? liveIndicators.get(liveSymbol) : undefined
+          const displayValue = liveData ? liveData.price : ind.value
+          const displayChange = liveData ? liveData.changePercent : ind.change
           const styles = STATUS_STYLES[ind.status]
           const sparkData = ind.history.map((v, i) => ({ v, i }))
-          const isPositiveChange = ind.change >= 0
-          const ChangeIcon = ind.change === 0 ? Minus : isPositiveChange ? TrendingUp : TrendingDown
+          const isPositiveChange = displayChange >= 0
+          const ChangeIcon = displayChange === 0 ? Minus : isPositiveChange ? TrendingUp : TrendingDown
 
           return (
             <div
@@ -38,9 +69,10 @@ export default function Indicators() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-xs text-slate-400 font-medium mb-0.5">{ind.name}</div>
-                  <div className="text-2xl font-bold text-white">
-                    {ind.value.toLocaleString('fr-FR')}
-                    <span className="text-sm font-normal text-slate-400 ml-1">{ind.unit}</span>
+                  <div className="text-2xl font-bold text-white flex items-center gap-2">
+                    {displayValue.toLocaleString('fr-FR')}
+                    <span className="text-sm font-normal text-slate-400">{ind.unit}</span>
+                    {liveData && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" title="Temps réel" />}
                   </div>
                 </div>
                 <div className={`w-2 h-2 rounded-full mt-1 ${styles.dot}`} />
@@ -54,7 +86,7 @@ export default function Indicators() {
                 <span
                   className={`text-xs font-medium ${isPositiveChange ? 'text-green-400' : 'text-red-400'}`}
                 >
-                  {isPositiveChange ? '+' : ''}{ind.change} {ind.unit}
+                  {isPositiveChange ? '+' : ''}{displayChange.toFixed(2)} {liveData ? '%' : ind.unit}
                 </span>
                 <span className="text-xs text-slate-500">vs veille</span>
               </div>
@@ -116,6 +148,14 @@ export default function Indicators() {
           </div>
         </div>
       </div>
+      <Sources sources={[
+        { label: 'VIX — CBOE', url: 'https://www.cboe.com/tradable_products/vix/' },
+        { label: 'S&P 500 P/E — Multpl', url: 'https://www.multpl.com/s-p-500-pe-ratio' },
+        { label: 'US 10Y Treasury — FRED', url: 'https://fred.stlouisfed.org/series/DGS10' },
+        { label: 'OAT France — Banque de France', url: 'https://www.banque-france.fr/statistiques/taux-et-cours/taux-interet-direct' },
+        { label: 'Prix de l\'or — World Gold Council', url: 'https://www.gold.org/goldhub/data/gold-prices' },
+        { label: 'Inflation US — BLS', url: 'https://www.bls.gov/cpi/' },
+      ]} />
     </div>
   )
 }

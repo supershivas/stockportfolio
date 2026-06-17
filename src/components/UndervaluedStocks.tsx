@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react'
-import { ChevronDown, ChevronUp, Search, TrendingDown, Info } from 'lucide-react'
+import { ChevronDown, ChevronUp, Search, TrendingDown, Info, RefreshCw } from 'lucide-react'
 import { stocksData, StockFundamentals } from '../data/fundamentals'
 import { calculateValuationScore, ValuationScore } from '../utils/valuationScore'
+import Sources from './Sources'
+import { useLiveQuotes } from '../hooks/useLiveQuotes'
 
 const COUNTRY_FLAGS: Record<string, string> = {
   France: '🇫🇷',
@@ -251,9 +253,18 @@ export default function UndervaluedStocks() {
   const [undervaluedOnly, setUndervaluedOnly] = useState(false)
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null)
 
+  const tickers = useMemo(() => stocksData.map((s) => s.ticker), [])
+  const { quotes: liveQuotes, loading: liveLoading, refresh: refreshLive, lastUpdated } = useLiveQuotes(tickers)
+
+  // Merge live prices into stocksData
+  const liveStocks = useMemo(() => stocksData.map((s) => {
+    const live = liveQuotes.get(s.ticker)
+    return live ? { ...s, currentPrice: live.price } : s
+  }), [liveQuotes])
+
   const scored = useMemo(
-    () => stocksData.map((s) => ({ stock: s, score: calculateValuationScore(s) })),
-    []
+    () => liveStocks.map((s) => ({ stock: s, score: calculateValuationScore(s) })),
+    [liveStocks]
   )
 
   const sectors = useMemo(() => ['all', ...Array.from(new Set(stocksData.map((s) => s.sector)))], [])
@@ -304,6 +315,16 @@ export default function UndervaluedStocks() {
           <h1 className="text-2xl font-bold text-white">Valeurs Sous-Évaluées</h1>
           <p className="text-slate-400 text-sm">Analyse fondamentale — 20 actions US & européennes</p>
         </div>
+        <button
+          onClick={refreshLive}
+          disabled={liveLoading}
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={12} className={liveLoading ? 'animate-spin' : ''} />
+          {lastUpdated
+            ? `Temps réel · ${lastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}`
+            : liveLoading ? 'Chargement…' : 'Actualiser cours'}
+        </button>
       </div>
 
       {/* Top Picks */}
@@ -566,6 +587,13 @@ export default function UndervaluedStocks() {
           Ces données sont <em>simulées à des fins éducatives</em> et ne constituent pas un conseil en investissement.
         </p>
       </div>
+      <Sources sources={[
+        { label: 'Graham Number — Investopedia', url: 'https://www.investopedia.com/terms/g/graham-number.asp', description: 'Définition et calcul du nombre de Graham' },
+        { label: 'DCF Valuation — Investopedia', url: 'https://www.investopedia.com/terms/d/dcf.asp', description: 'Méthode d\'actualisation des flux de trésorerie' },
+        { label: 'Screener fondamental — Finviz', url: 'https://finviz.com/screener.ashx?v=111&f=fa_pe_u20,fa_roe_o15', description: 'Screener actions sous-évaluées (P/E < 20, ROE > 15%)' },
+        { label: 'Ratios financiers — Macrotrends', url: 'https://www.macrotrends.net/', description: 'Historique des ratios P/E, P/B, marges par entreprise' },
+        { label: 'P/E & P/B par secteur — Damodaran NYU', url: 'https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/pedata.html', description: 'Ratios de valorisation moyens par secteur (A. Damodaran, NYU)' },
+      ]} />
     </div>
   )
 }

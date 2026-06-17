@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { recommendations } from '../data/recommendations'
+import Sources from './Sources'
 import { InvestmentHouse } from '../types'
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
@@ -183,6 +184,14 @@ export default function Recommendations() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      <Sources sources={[
+        { label: 'Vanguard Investment Commentary', url: 'https://investor.vanguard.com/investor-resources-education/article/investment-commentary' },
+        { label: 'BlackRock Investment Institute', url: 'https://www.blackrock.com/corporate/insights/blackrock-investment-institute' },
+        { label: 'Fidelity Market Outlook', url: 'https://www.fidelity.com/learning-center/trading-investing/markets-sectors/market-outlook' },
+        { label: 'JPMorgan Market Insights', url: 'https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/' },
+        { label: 'Goldman Sachs Research', url: 'https://www.goldmansachs.com/intelligence/pages/gs-research.html' },
+        { label: 'Morgan Stanley Outlook', url: 'https://www.morganstanley.com/ideas/investment-outlook' },
+      ]} />
     </div>
   )
 }

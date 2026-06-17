@@ -3,7 +3,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine
 } from 'recharts'
-import { AlertTriangle, Shield, TrendingDown, Activity } from 'lucide-react'
+import { AlertTriangle, Shield, TrendingDown, Activity, RefreshCw } from 'lucide-react'
+import { useLiveQuotes } from '../hooks/useLiveQuotes'
+import Sources from './Sources'
 
 const CORRELATION_MATRIX = [
   { asset: 'AAPL',  AAPL: 1.00, MSFT: 0.82, NVDA: 0.71, LVMH: 0.35, CW8: 0.78, SP500: 0.65 },
@@ -44,8 +46,13 @@ const drawdownData = buildDrawdown()
 
 export default function RiskAnalysis() {
   const positions = usePortfolioStore((s) => s.positions)
+  const tickers = positions.map((p) => p.ticker)
+  const { quotes: liveQuotes, loading, refresh, lastUpdated } = useLiveQuotes(tickers)
 
-  const totalValue = positions.reduce((s, p) => s + p.quantity * p.currentPrice, 0)
+  const totalValue = positions.reduce((s, p) => {
+    const live = liveQuotes.get(p.ticker)
+    return s + p.quantity * (live ? live.price : p.currentPrice)
+  }, 0)
   const totalCost = positions.reduce((s, p) => s + p.quantity * p.purchasePrice, 0)
 
   const beta = 1.12
@@ -101,9 +108,19 @@ export default function RiskAnalysis() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Analyse de Risque</h1>
-        <p className="text-slate-400 text-sm mt-1">Métriques de risque et diversification du portefeuille</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Analyse de Risque</h1>
+          <p className="text-slate-400 text-sm mt-1">Métriques de risque et diversification du portefeuille</p>
+        </div>
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+          {lastUpdated ? `Temps réel · ${lastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}` : 'Actualiser'}
+        </button>
       </div>
 
       {/* Risk metric cards */}
@@ -237,6 +254,13 @@ export default function RiskAnalysis() {
           ))}
         </div>
       </div>
+      <Sources sources={[
+        { label: 'Beta & Volatilité — Investopedia', url: 'https://www.investopedia.com/terms/b/beta.asp', description: 'Définition du Beta et mesure de risque' },
+        { label: 'Ratio de Sharpe — Investopedia', url: 'https://www.investopedia.com/terms/s/sharperatio.asp', description: 'Calcul et interprétation du ratio de Sharpe' },
+        { label: 'Corrélations — MSCI', url: 'https://www.msci.com/research-and-insights/visualizing-investment-data/asset-class-correlations', description: 'Corrélations entre classes d\'actifs' },
+        { label: 'Portfolio Visualizer', url: 'https://www.portfoliovisualizer.com/', description: 'Backtesting et analyse de risque de portefeuille' },
+        { label: 'Max Drawdown — Investopedia', url: 'https://www.investopedia.com/terms/m/maximum-drawdown-mdd.asp', description: 'Définition et calcul du drawdown maximum' },
+      ]} />
     </div>
   )
 }

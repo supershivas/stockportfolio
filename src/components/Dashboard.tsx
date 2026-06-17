@@ -1,40 +1,45 @@
 import { usePortfolioStore } from '../store/portfolioStore'
-import { TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide-react'
+import { TrendingUp, TrendingDown, DollarSign, Percent, RefreshCw } from 'lucide-react'
+import Sources from './Sources'
 import {
   LineChart, Line, ResponsiveContainer, Tooltip,
   PieChart, Pie, Cell, Legend
 } from 'recharts'
+import { useLiveQuotes } from '../hooks/useLiveQuotes'
+import { INDEX_TICKERS } from '../services/marketData'
 
-const INDEX_DATA = [
-  {
-    name: 'S&P 500', value: 4783.45, change: 1.23,
-    spark: [4600, 4650, 4620, 4700, 4720, 4680, 4750, 4783],
-  },
-  {
-    name: 'NASDAQ', value: 15011.35, change: 1.87,
-    spark: [14500, 14600, 14550, 14700, 14800, 14750, 14900, 15011],
-  },
-  {
-    name: 'CAC 40', value: 7568.20, change: -0.34,
-    spark: [7600, 7580, 7560, 7520, 7500, 7540, 7570, 7568],
-  },
-  {
-    name: 'MSCI World', value: 3182.60, change: 0.92,
-    spark: [3100, 3120, 3110, 3140, 3150, 3160, 3170, 3182],
-  },
-]
+// Static sparklines (shape only — value from live data or fallback)
+const SPARK_SHAPES: Record<string, number[]> = {
+  '^GSPC':   [0.92, 0.94, 0.93, 0.96, 0.97, 0.96, 0.98, 1],
+  '^IXIC':   [0.91, 0.93, 0.92, 0.95, 0.97, 0.96, 0.99, 1],
+  '^FCHI':   [1.01, 1.00, 0.99, 0.98, 0.99, 1.00, 0.99, 1],
+  'IWDA.AS': [0.93, 0.94, 0.93, 0.96, 0.97, 0.97, 0.99, 1],
+}
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6']
 
 export default function Dashboard() {
   const positions = usePortfolioStore((s) => s.positions)
+  const indexSymbols = INDEX_TICKERS.map((t) => t.symbol)
+  const portfolioTickers = positions.map((p) => p.ticker)
+  const { quotes: indexQuotes, loading: indexLoading, refresh: refreshIndexes } = useLiveQuotes(indexSymbols)
+  const { quotes: portfolioQuotes, refresh: refreshPortfolio } = useLiveQuotes(portfolioTickers)
 
   const totalValue = positions.reduce((sum, p) => sum + p.quantity * p.currentPrice, 0)
   const totalCost = positions.reduce((sum, p) => sum + p.quantity * p.purchasePrice, 0)
-  const totalPnL = totalValue - totalCost
-  const totalReturn = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0
+  // Use live prices for portfolio value if available
+  const liveValue = positions.reduce((sum, p) => {
+    const live = portfolioQuotes.get(p.ticker)
+    return sum + p.quantity * (live ? live.price : p.currentPrice)
+  }, 0)
+  const displayValue = liveValue > 0 ? liveValue : totalValue
+  const totalPnLLive = displayValue - totalCost
+  const totalReturn = totalCost > 0 ? (totalPnLLive / totalCost) * 100 : 0
 
-  const dayChange = totalValue * 0.0087
+  const dayChange = positions.reduce((sum, p) => {
+    const live = portfolioQuotes.get(p.ticker)
+    return sum + p.quantity * (live ? live.change : 0)
+  }, 0)
 
   const sectorMap: Record<string, number> = {}
   positions.forEach((p) => {
@@ -53,24 +58,24 @@ export default function Dashboard() {
   const statCards = [
     {
       label: 'Valeur Totale',
-      value: fmt(totalValue),
+      value: fmt(displayValue),
       icon: <DollarSign size={20} className="text-indigo-400" />,
       sub: 'Portfolio complet',
       color: 'text-white',
     },
     {
       label: 'Variation Jour',
-      value: `+${fmt(dayChange)}`,
-      icon: <TrendingUp size={20} className="text-green-400" />,
-      sub: "+0.87% aujourd'hui",
-      color: 'text-green-400',
+      value: `${dayChange >= 0 ? '+' : ''}${fmt(dayChange)}`,
+      icon: dayChange >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
+      sub: portfolioQuotes.size > 0 ? 'Données temps réel' : 'Estimé',
+      color: dayChange >= 0 ? 'text-green-400' : 'text-red-400',
     },
     {
       label: 'P&L Total',
-      value: `${totalPnL >= 0 ? '+' : ''}${fmt(totalPnL)}`,
-      icon: totalPnL >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
+      value: `${totalPnLLive >= 0 ? '+' : ''}${fmt(totalPnLLive)}`,
+      icon: totalPnLLive >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
       sub: 'Depuis le début',
-      color: totalPnL >= 0 ? 'text-green-400' : 'text-red-400',
+      color: totalPnLLive >= 0 ? 'text-green-400' : 'text-red-400',
     },
     {
       label: 'Rendement',
@@ -106,43 +111,55 @@ export default function Dashboard() {
 
       {/* Index cards */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-3">Indices Mondiaux</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-white">Indices Mondiaux</h2>
+          <button
+            onClick={() => { refreshIndexes(); refreshPortfolio() }}
+            disabled={indexLoading}
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={indexLoading ? 'animate-spin' : ''} />
+            {indexLoading ? 'Chargement…' : 'Actualiser'}
+          </button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {INDEX_DATA.map((idx) => (
-            <div key={idx.name} className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <div className="font-semibold text-white text-sm">{idx.name}</div>
-                  <div className="text-xl font-bold text-white mt-0.5">
-                    {idx.value.toLocaleString('fr-FR')}
+          {INDEX_TICKERS.map((idx) => {
+            const live = indexQuotes.get(idx.symbol)
+            const price = live ? live.price : idx.fallback
+            const change = live ? live.changePercent : idx.changePercent
+            const shape = SPARK_SHAPES[idx.symbol] || [0.95, 0.97, 0.96, 0.98, 0.99, 0.98, 0.99, 1]
+            const sparkData = shape.map((r) => ({ v: +(price * r).toFixed(2) }))
+            return (
+              <div key={idx.symbol} className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="font-semibold text-white text-sm flex items-center gap-1.5">
+                      {idx.label}
+                      {live && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" title="Temps réel" />}
+                    </div>
+                    <div className="text-xl font-bold text-white mt-0.5">
+                      {price.toLocaleString('fr-FR')}
+                    </div>
                   </div>
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded ${
+                    change >= 0 ? 'text-green-400 bg-green-400/10' : 'text-red-400 bg-red-400/10'
+                  }`}>
+                    {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+                  </span>
                 </div>
-                <span className={`text-sm font-medium px-2 py-0.5 rounded ${
-                  idx.change >= 0
-                    ? 'text-green-400 bg-green-400/10'
-                    : 'text-red-400 bg-red-400/10'
-                }`}>
-                  {idx.change >= 0 ? '+' : ''}{idx.change}%
-                </span>
+                <ResponsiveContainer width="100%" height={50}>
+                  <LineChart data={sparkData}>
+                    <Line type="monotone" dataKey="v" stroke={change >= 0 ? '#22c55e' : '#f87171'} strokeWidth={2} dot={false} />
+                    <Tooltip
+                      contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px' }}
+                      labelFormatter={() => ''}
+                      formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.label]}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-              <ResponsiveContainer width="100%" height={50}>
-                <LineChart data={idx.spark.map((v, i) => ({ v, i }))}>
-                  <Line
-                    type="monotone"
-                    dataKey="v"
-                    stroke={idx.change >= 0 ? '#22c55e' : '#f87171'}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Tooltip
-                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px' }}
-                    labelFormatter={() => ''}
-                    formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.name]}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
@@ -211,6 +228,13 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+      <Sources sources={[
+        { label: 'Yahoo Finance', url: 'https://finance.yahoo.com/', description: 'Cours boursiers et données de marché' },
+        { label: 'S&P 500 — Macrotrends', url: 'https://www.macrotrends.net/2324/sp-500-historical-chart-data', description: 'Historique S&P 500' },
+        { label: 'CAC 40 — Euronext', url: 'https://www.euronext.com/fr/products/indices/FR0003500008-XPAR', description: 'Composition et performance du CAC 40' },
+        { label: 'MSCI World Index', url: 'https://www.msci.com/our-solutions/indexes/msci-world', description: 'Composition et performances MSCI World' },
+        { label: 'Finnhub — Données temps réel', url: 'https://finnhub.io/', description: 'API de données boursières en temps réel' },
+      ]} />
     </div>
   )
 }

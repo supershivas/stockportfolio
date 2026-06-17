@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
+import Sources from './Sources'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Legend
@@ -219,6 +220,13 @@ export default function Projections() {
           </div>
         ))}
       </div>
+      <Sources sources={[
+        { label: 'Vanguard Capital Market Assumptions', url: 'https://institutional.vanguard.com/content/dam/inst/vanguard-has/insights-pdfs/23_TL_VCMR_2023_Supplement.pdf' },
+        { label: 'BlackRock Capital Market Assumptions', url: 'https://www.blackrock.com/institutions/en-zz/insights/charts/capital-market-assumptions' },
+        { label: 'JP Morgan LTCMA', url: 'https://am.jpmorgan.com/us/en/asset-management/adv/insights/portfolio-insights/ltcma/' },
+        { label: 'Historique S&P 500 — Macrotrends', url: 'https://www.macrotrends.net/2526/sp-500-historical-annual-returns' },
+        { label: 'Inflation US — FRED', url: 'https://fred.stlouisfed.org/series/CPIAUCSL' },
+      ]} />
     </div>
   )
 }
