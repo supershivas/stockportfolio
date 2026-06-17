@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Check, RefreshCw } from 'lucide-react'
+import StockSearchInput from './StockSearchInput'
+import { StockSearchResult } from '../data/stockDatabase'
+import { fetchMultipleQuotes, isApiConfigured } from '../services/marketData'
 
 const EMPTY: Omit<Position, 'id'> = {
   ticker: '',
@@ -17,6 +20,9 @@ export default function Portfolio() {
   const { positions, addPosition, updatePosition, removePosition } = usePortfolioStore()
   const [modal, setModal] = useState<{ type: 'add' | 'edit'; data: Omit<Position, 'id'>; id?: string } | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [autoFilled, setAutoFilled] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshMsg, setRefreshMsg] = useState('')
 
   const fmt = (n: number, cur = 'USD') =>
     new Intl.NumberFormat('fr-FR', { style: 'currency', currency: cur, maximumFractionDigits: 2 }).format(n)
@@ -27,12 +33,49 @@ export default function Portfolio() {
 
   const handleSave = () => {
     if (!modal) return
-    if (modal.type === 'add') {
-      addPosition(modal.data)
-    } else if (modal.id) {
-      updatePosition(modal.id, modal.data)
-    }
+    if (modal.type === 'add') addPosition(modal.data)
+    else if (modal.id) updatePosition(modal.id, modal.data)
     setModal(null)
+    setAutoFilled(false)
+  }
+
+  const handleSelectStock = useCallback((stock: StockSearchResult) => {
+    setModal((m) =>
+      m
+        ? {
+            ...m,
+            data: {
+              ...m.data,
+              ticker: stock.ticker,
+              name: stock.name,
+              sector: stock.sector,
+              currency: stock.currency,
+              currentPrice: stock.currentPrice,
+            },
+          }
+        : m
+    )
+    setAutoFilled(true)
+  }, [])
+
+  const handleRefreshPrices = async () => {
+    if (!isApiConfigured()) {
+      setRefreshMsg('Configurez votre clé Finnhub pour activer le cours en temps réel.')
+      setTimeout(() => setRefreshMsg(''), 4000)
+      return
+    }
+    setRefreshing(true)
+    setRefreshMsg('Mise à jour des cours…')
+    const tickers = positions.map((p) => p.ticker)
+    const quotes = await fetchMultipleQuotes(tickers)
+    let updated = 0
+    quotes.forEach((q, ticker) => {
+      const pos = positions.find((p) => p.ticker === ticker)
+      if (pos) { updatePosition(pos.id, { currentPrice: q.price }); updated++ }
+    })
+    setRefreshing(false)
+    setRefreshMsg(updated > 0 ? `${updated} cours mis à jour ✓` : 'Aucune donnée disponible.')
+    setTimeout(() => setRefreshMsg(''), 4000)
   }
 
   const renderField = (label: string, key: keyof Omit<Position, 'id'>, type = 'text') => (
@@ -69,13 +112,25 @@ export default function Portfolio() {
           <h1 className="text-2xl font-bold text-white">Mon Portfolio</h1>
           <p className="text-slate-400 text-sm mt-1">Gérez vos positions boursières</p>
         </div>
-        <button
-          onClick={() => setModal({ type: 'add', data: { ...EMPTY } })}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Plus size={16} />
-          Ajouter
-        </button>
+        <div className="flex items-center gap-3">
+          {refreshMsg && <span className="text-xs text-slate-400">{refreshMsg}</span>}
+          <button
+            onClick={handleRefreshPrices}
+            disabled={refreshing}
+            title="Mettre à jour les cours (requiert clé Finnhub)"
+            className="flex items-center gap-2 border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+            Actualiser
+          </button>
+          <button
+            onClick={() => { setModal({ type: 'add', data: { ...EMPTY } }); setAutoFilled(false) }}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <Plus size={16} />
+            Ajouter
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -85,9 +140,7 @@ export default function Portfolio() {
             <thead>
               <tr className="border-b border-slate-700">
                 {['Ticker', 'Nom', 'Secteur', 'Qté', 'Prix Achat', 'Prix Actuel', 'Valeur', 'P&L', 'Rend.', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    {h}
-                  </th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -107,9 +160,7 @@ export default function Portfolio() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-300">{p.name}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span>
-                    </td>
+                    <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span></td>
                     <td className="px-4 py-3 text-slate-300">{p.quantity}</td>
                     <td className="px-4 py-3 text-slate-300">{fmt(p.purchasePrice, p.currency)}</td>
                     <td className="px-4 py-3 text-white font-medium">{fmt(p.currentPrice, p.currency)}</td>
@@ -123,7 +174,7 @@ export default function Portfolio() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id })}
+                          onClick={() => { setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id }); setAutoFilled(false) }}
                           className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
                         >
                           <Pencil size={14} />
@@ -160,15 +211,29 @@ export default function Portfolio() {
       {/* Add/Edit Modal */}
       {modal && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg p-6">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-white">
                 {modal.type === 'add' ? 'Ajouter une position' : 'Modifier la position'}
               </h2>
-              <button onClick={() => setModal(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => { setModal(null); setAutoFilled(false) }} className="text-slate-400 hover:text-white">
                 <X size={20} />
               </button>
             </div>
+
+            {/* Search — only in add mode */}
+            {modal.type === 'add' && (
+              <div className="mb-4">
+                <StockSearchInput onSelect={handleSelectStock} />
+                {autoFilled && (
+                  <div className="mt-2 flex items-center gap-1.5 text-green-400 text-xs">
+                    <Check size={12} />
+                    Données importées automatiquement — vérifiez et complétez si besoin
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               {renderField('Ticker', 'ticker')}
               {renderField('Devise', 'currency')}
@@ -180,7 +245,7 @@ export default function Portfolio() {
             </div>
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setModal(null)}
+                onClick={() => { setModal(null); setAutoFilled(false) }}
                 className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:text-white hover:border-slate-500 text-sm transition-colors"
               >
                 Annuler
@@ -204,12 +269,7 @@ export default function Portfolio() {
             <h2 className="text-lg font-semibold text-white mb-2">Confirmer la suppression</h2>
             <p className="text-slate-400 text-sm mb-6">Êtes-vous sûr de vouloir supprimer cette position ? Cette action est irréversible.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:text-white text-sm transition-colors"
-              >
-                Annuler
-              </button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:text-white text-sm transition-colors">Annuler</button>
               <button
                 onClick={() => { removePosition(deleteId); setDeleteId(null) }}
                 className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"

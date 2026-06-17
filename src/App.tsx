@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield, TrendingDown, Menu, X, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield, TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff } from 'lucide-react'
+import ApiSettings from './components/ApiSettings'
+import { isApiConfigured } from './services/marketData'
 import Dashboard from './components/Dashboard'
 import Portfolio from './components/Portfolio'
 import Projections from './components/Projections'
@@ -22,6 +24,13 @@ const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
 export default function App() {
   const [page, setPage] = useState<Page>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showApiSettings, setShowApiSettings] = useState(false)
+  const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
+
+  useEffect(() => {
+    const interval = setInterval(() => setApiConfigured(isApiConfigured()), 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const renderPage = () => {
     switch (page) {
@@ -37,6 +46,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+      {showApiSettings && <ApiSettings onClose={() => { setShowApiSettings(false); setApiConfigured(isApiConfigured()) }} />}
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -87,9 +97,16 @@ export default function App() {
         </nav>
 
         {/* Footer */}
-        <div className="px-4 py-4 border-t border-slate-700">
-          <p className="text-xs text-slate-500 text-center">PortfolioAI v0.0.1</p>
-          <p className="text-xs text-slate-600 text-center mt-1">Données simulées uniquement</p>
+        <div className="px-4 py-4 border-t border-slate-700 space-y-3">
+          <button
+            onClick={() => setShowApiSettings(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white text-sm transition-colors"
+          >
+            {apiConfigured ? <Wifi size={15} className="text-green-400" /> : <WifiOff size={15} className="text-slate-500" />}
+            <span className="flex-1 text-left">{apiConfigured ? 'Temps réel actif' : 'Données simulées'}</span>
+            <Settings size={14} />
+          </button>
+          <p className="text-xs text-slate-600 text-center">PortfolioAI v0.0.1</p>
         </div>
       </aside>
 
