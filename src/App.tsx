@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield, TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff } from 'lucide-react'
+import { LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield, TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import { isApiConfigured } from './services/marketData'
 import Dashboard from './components/Dashboard'
@@ -9,11 +9,13 @@ import Recommendations from './components/Recommendations'
 import Indicators from './components/Indicators'
 import RiskAnalysis from './components/RiskAnalysis'
 import UndervaluedStocks from './components/UndervaluedStocks'
+import DividendTracker from './components/DividendTracker'
 import { Page } from './types'
 
 const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
   { id: 'portfolio', label: 'Mon Portfolio', icon: <Briefcase size={20} /> },
+  { id: 'dividends', label: 'Dividendes', icon: <DollarSign size={20} /> },
   { id: 'projections', label: 'Projections', icon: <TrendingUp size={20} /> },
   { id: 'recommendations', label: 'Recommandations', icon: <Building2 size={20} /> },
   { id: 'indicators', label: 'Indicateurs', icon: <BarChart3 size={20} /> },
@@ -41,6 +43,7 @@ export default function App() {
       case 'indicators': return <Indicators />
       case 'risk': return <RiskAnalysis />
       case 'undervalued': return <UndervaluedStocks />
+      case 'dividends': return <DividendTracker />
     }
   }
 

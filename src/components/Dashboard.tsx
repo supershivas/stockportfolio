@@ -1,6 +1,7 @@
 import { usePortfolioStore } from '../store/portfolioStore'
 import { TrendingUp, TrendingDown, DollarSign, Percent, RefreshCw } from 'lucide-react'
 import Sources from './Sources'
+import MarketBulletin from './MarketBulletin'
 import {
   LineChart, Line, ResponsiveContainer, Tooltip,
   PieChart, Pie, Cell, Legend
@@ -228,6 +229,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+      <MarketBulletin />
       <Sources sources={[
         { label: 'Yahoo Finance', url: 'https://finance.yahoo.com/', description: 'Cours boursiers et données de marché' },
         { label: 'S&P 500 — Macrotrends', url: 'https://www.macrotrends.net/2324/sp-500-historical-chart-data', description: 'Historique S&P 500' },
