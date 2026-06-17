@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield, Menu, X, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield, TrendingDown, Menu, X, ChevronRight } from 'lucide-react'
 import Dashboard from './components/Dashboard'
 import Portfolio from './components/Portfolio'
 import Projections from './components/Projections'
 import Recommendations from './components/Recommendations'
 import Indicators from './components/Indicators'
 import RiskAnalysis from './components/RiskAnalysis'
+import UndervaluedStocks from './components/UndervaluedStocks'
 import { Page } from './types'
 
 const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
@@ -15,6 +16,7 @@ const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'recommendations', label: 'Recommandations', icon: <Building2 size={20} /> },
   { id: 'indicators', label: 'Indicateurs', icon: <BarChart3 size={20} /> },
   { id: 'risk', label: 'Analyse Risque', icon: <Shield size={20} /> },
+  { id: 'undervalued', label: 'Sous-Évaluées', icon: <TrendingDown size={20} /> },
 ]
 
 export default function App() {
@@ -29,6 +31,7 @@ export default function App() {
       case 'recommendations': return <Recommendations />
       case 'indicators': return <Indicators />
       case 'risk': return <RiskAnalysis />
+      case 'undervalued': return <UndervaluedStocks />
     }
   }
 

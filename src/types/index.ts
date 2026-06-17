@@ -9,7 +9,7 @@ export interface Position {
   sector: string;
 }
 
-export type Page = 'dashboard' | 'portfolio' | 'projections' | 'recommendations' | 'indicators' | 'risk';
+export type Page = 'dashboard' | 'portfolio' | 'projections' | 'recommendations' | 'indicators' | 'risk' | 'undervalued';
 
 export type InvestmentHouse = 'Vanguard' | 'BlackRock' | 'Fidelity' | 'JPMorgan' | 'Goldman Sachs' | 'Morgan Stanley';
 
