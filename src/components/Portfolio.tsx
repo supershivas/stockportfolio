@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
 import { Plus, Pencil, Trash2, X, Check, RefreshCw } from 'lucide-react'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from '../data/stockDatabase'
-import { fetchMultipleQuotes, isApiConfigured } from '../services/marketData'
+import { fetchMultipleQuotes, fetchQuote, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
 
 const EMPTY: Omit<Position, 'id'> = {
   ticker: '',
@@ -23,12 +23,21 @@ export default function Portfolio() {
   const [autoFilled, setAutoFilled] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [refreshMsg, setRefreshMsg] = useState('')
+  const [eurUsd, setEurUsd] = useState(1.08)
+  const [fetchingLivePrice, setFetchingLivePrice] = useState(false)
 
-  const fmt = (n: number, cur = 'USD') =>
-    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: cur, maximumFractionDigits: 2 }).format(n)
+  useEffect(() => {
+    if (isApiConfigured()) fetchEurUsdRate().then(setEurUsd)
+  }, [])
 
-  const totalValue = positions.reduce((s, p) => s + p.quantity * p.currentPrice, 0)
-  const totalCost = positions.reduce((s, p) => s + p.quantity * p.purchasePrice, 0)
+  const toEur = (amount: number, currency: string) =>
+    currency === 'USD' ? amount / eurUsd : amount
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(n)
+
+  const totalValue = positions.reduce((s, p) => s + toEur(p.quantity * p.currentPrice, p.currency), 0)
+  const totalCost = positions.reduce((s, p) => s + toEur(p.quantity * p.purchasePrice, p.currency), 0)
   const totalPnL = totalValue - totalCost
 
   const handleSave = () => {
@@ -39,7 +48,7 @@ export default function Portfolio() {
     setAutoFilled(false)
   }
 
-  const handleSelectStock = useCallback((stock: StockSearchResult) => {
+  const handleSelectStock = useCallback(async (stock: StockSearchResult) => {
     setModal((m) =>
       m
         ? {
@@ -56,6 +65,16 @@ export default function Portfolio() {
         : m
     )
     setAutoFilled(true)
+    if (isApiConfigured()) {
+      setFetchingLivePrice(true)
+      const live = await fetchQuote(stock.ticker)
+      if (live) {
+        setModal((m) =>
+          m ? { ...m, data: { ...m.data, currentPrice: live.price } } : m
+        )
+      }
+      setFetchingLivePrice(false)
+    }
   }, [])
 
   const handleRefreshPrices = async () => {
@@ -146,8 +165,8 @@ export default function Portfolio() {
             </thead>
             <tbody>
               {positions.map((p) => {
-                const value = p.quantity * p.currentPrice
-                const pnl = p.quantity * (p.currentPrice - p.purchasePrice)
+                const value = toEur(p.quantity * p.currentPrice, p.currency)
+                const pnl = toEur(p.quantity * (p.currentPrice - p.purchasePrice), p.currency)
                 const ret = ((p.currentPrice - p.purchasePrice) / p.purchasePrice) * 100
                 return (
                   <tr key={p.id} className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
@@ -157,16 +176,17 @@ export default function Portfolio() {
                           <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
                         </div>
                         <span className="font-medium text-white">{p.ticker}</span>
+                        {p.currency === 'USD' && <span className="text-xs text-slate-500">$→€</span>}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-300">{p.name}</td>
                     <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span></td>
                     <td className="px-4 py-3 text-slate-300">{p.quantity}</td>
-                    <td className="px-4 py-3 text-slate-300">{fmt(p.purchasePrice, p.currency)}</td>
-                    <td className="px-4 py-3 text-white font-medium">{fmt(p.currentPrice, p.currency)}</td>
-                    <td className="px-4 py-3 text-white font-semibold">{fmt(value, p.currency)}</td>
+                    <td className="px-4 py-3 text-slate-300">{fmt(toEur(p.purchasePrice, p.currency))}</td>
+                    <td className="px-4 py-3 text-white font-medium">{fmt(toEur(p.currentPrice, p.currency))}</td>
+                    <td className="px-4 py-3 text-white font-semibold">{fmt(value)}</td>
                     <td className={`px-4 py-3 font-medium ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {pnl >= 0 ? '+' : ''}{fmt(pnl, p.currency)}
+                      {pnl >= 0 ? '+' : ''}{fmt(pnl)}
                     </td>
                     <td className={`px-4 py-3 font-medium ${ret >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {ret >= 0 ? '+' : ''}{ret.toFixed(2)}%
@@ -226,9 +246,12 @@ export default function Portfolio() {
               <div className="mb-4">
                 <StockSearchInput onSelect={handleSelectStock} />
                 {autoFilled && (
-                  <div className="mt-2 flex items-center gap-1.5 text-green-400 text-xs">
-                    <Check size={12} />
-                    Données importées automatiquement — vérifiez et complétez si besoin
+                  <div className="mt-2 flex items-center gap-1.5 text-xs">
+                    {fetchingLivePrice ? (
+                      <><RefreshCw size={12} className="animate-spin text-indigo-400" /><span className="text-indigo-400">Récupération du cours en temps réel…</span></>
+                    ) : (
+                      <><Check size={12} className="text-green-400" /><span className="text-green-400">Données importées — vérifiez et complétez si besoin</span></>
+                    )}
                   </div>
                 )}
               </div>

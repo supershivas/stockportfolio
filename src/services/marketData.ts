@@ -69,6 +69,19 @@ export const INDICATOR_TICKERS = [
   { symbol: 'DX-Y.NYB', label: 'Dollar Index' },
 ]
 
+export async function fetchEurUsdRate(): Promise<number> {
+  const key = getKey()
+  if (!key) return 1.08 // fallback
+  try {
+    const res = await fetch(`${FINNHUB_BASE}/quote?symbol=EURUSD&token=${key}`)
+    if (!res.ok) return 1.08
+    const d = await res.json()
+    return d.c && d.c > 0 ? d.c : 1.08
+  } catch {
+    return 1.08
+  }
+}
+
 export async function testApiKey(key: string): Promise<boolean> {
   try {
     const res = await fetch(`${FINNHUB_BASE}/quote?symbol=AAPL&token=${key}`)
