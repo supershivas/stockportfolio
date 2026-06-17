@@ -14,6 +14,8 @@ export default function DividendTracker() {
   const [sortBy, setSortBy] = useState<'yield' | 'exdate' | 'income'>('yield')
 
   const tickers = DIVIDEND_STOCKS.map((d) => d.ticker)
+  // autoFetch=false: 16 tickers would consume 18s of rate-limited calls on every page load
+  // User triggers refresh manually, or it fires automatically only at 7am Brussels
   const { quotes, loading, refresh } = useLiveQuotes(tickers, false)
 
   useEffect(() => {

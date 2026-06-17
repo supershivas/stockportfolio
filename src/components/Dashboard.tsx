@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
-import { TrendingUp, TrendingDown, DollarSign, Percent, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Euro, Percent, RefreshCw, WifiOff } from 'lucide-react'
 import Sources from './Sources'
 import MarketBulletin from './MarketBulletin'
 import {
@@ -7,7 +8,7 @@ import {
   PieChart, Pie, Cell, Legend
 } from 'recharts'
 import { useLiveQuotes } from '../hooks/useLiveQuotes'
-import { INDEX_TICKERS } from '../services/marketData'
+import { INDEX_TICKERS, fetchEurUsdRate } from '../services/marketData'
 
 // Static sparklines (shape only — value from live data or fallback)
 const SPARK_SHAPES: Record<string, number[]> = {
@@ -21,62 +22,74 @@ const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6'
 
 export default function Dashboard() {
   const positions = usePortfolioStore((s) => s.positions)
+  const [eurUsd, setEurUsd] = useState(1.08)
+  useEffect(() => {
+    fetchEurUsdRate().then(setEurUsd)
+  }, [])
+
+  const toEur = (amount: number, currency: string) =>
+    currency === 'USD' ? amount / eurUsd : amount
+
   const indexSymbols = INDEX_TICKERS.map((t) => t.symbol)
   const portfolioTickers = positions.map((p) => p.ticker)
   const { quotes: indexQuotes, loading: indexLoading, refresh: refreshIndexes } = useLiveQuotes(indexSymbols)
   const { quotes: portfolioQuotes, refresh: refreshPortfolio } = useLiveQuotes(portfolioTickers)
 
-  const totalValue = positions.reduce((sum, p) => sum + p.quantity * p.currentPrice, 0)
-  const totalCost = positions.reduce((sum, p) => sum + p.quantity * p.purchasePrice, 0)
-  // Use live prices for portfolio value if available
-  const liveValue = positions.reduce((sum, p) => {
+  // All values in EUR — USD positions converted using live EUR/USD rate
+  const totalCostEur = positions.reduce((sum, p) => sum + toEur(p.quantity * p.purchasePrice, p.currency), 0)
+  const staticValueEur = positions.reduce((sum, p) => sum + toEur(p.quantity * p.currentPrice, p.currency), 0)
+  const liveValueEur = positions.reduce((sum, p) => {
     const live = portfolioQuotes.get(p.ticker)
-    return sum + p.quantity * (live ? live.price : p.currentPrice)
+    return sum + toEur(p.quantity * (live ? live.price : p.currentPrice), p.currency)
   }, 0)
-  const displayValue = liveValue > 0 ? liveValue : totalValue
-  const totalPnLLive = displayValue - totalCost
-  const totalReturn = totalCost > 0 ? (totalPnLLive / totalCost) * 100 : 0
+  const hasLiveData = portfolioQuotes.size > 0
+  const displayValue = hasLiveData ? liveValueEur : staticValueEur
+  const totalPnLEur = displayValue - totalCostEur
+  const totalReturn = totalCostEur > 0 ? (totalPnLEur / totalCostEur) * 100 : 0
 
-  const dayChange = positions.reduce((sum, p) => {
+  const dayChangeEur = positions.reduce((sum, p) => {
     const live = portfolioQuotes.get(p.ticker)
-    return sum + p.quantity * (live ? live.change : 0)
+    return sum + toEur(p.quantity * (live ? live.change : 0), p.currency)
   }, 0)
 
   const sectorMap: Record<string, number> = {}
   positions.forEach((p) => {
-    const val = p.quantity * p.currentPrice
+    const val = toEur(p.quantity * p.currentPrice, p.currency)
     sectorMap[p.sector] = (sectorMap[p.sector] || 0) + val
   })
   const sectorData = Object.entries(sectorMap).map(([name, value]) => ({ name, value }))
 
   const top5 = [...positions]
-    .sort((a, b) => b.quantity * b.currentPrice - a.quantity * a.currentPrice)
+    .sort((a, b) => toEur(b.quantity * b.currentPrice, b.currency) - toEur(a.quantity * a.currentPrice, a.currency))
     .slice(0, 5)
 
-  const fmt = (n: number, cur = 'USD') =>
-    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(n)
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 
   const statCards = [
     {
       label: 'Valeur Totale',
       value: fmt(displayValue),
-      icon: <DollarSign size={20} className="text-indigo-400" />,
-      sub: 'Portfolio complet',
+      icon: <Euro size={20} className="text-indigo-400" />,
+      sub: hasLiveData ? `Temps réel · EUR/USD ${eurUsd.toFixed(4)}` : 'Données locales',
       color: 'text-white',
+      warning: !hasLiveData,
     },
     {
       label: 'Variation Jour',
-      value: `${dayChange >= 0 ? '+' : ''}${fmt(dayChange)}`,
-      icon: dayChange >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
-      sub: portfolioQuotes.size > 0 ? 'Données temps réel' : 'Estimé',
-      color: dayChange >= 0 ? 'text-green-400' : 'text-red-400',
+      value: `${dayChangeEur >= 0 ? '+' : ''}${fmt(dayChangeEur)}`,
+      icon: dayChangeEur >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
+      sub: hasLiveData ? 'Données temps réel' : 'Pas de données live',
+      color: dayChangeEur >= 0 ? 'text-green-400' : 'text-red-400',
+      warning: !hasLiveData,
     },
     {
       label: 'P&L Total',
-      value: `${totalPnLLive >= 0 ? '+' : ''}${fmt(totalPnLLive)}`,
-      icon: totalPnLLive >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
-      sub: 'Depuis le début',
-      color: totalPnLLive >= 0 ? 'text-green-400' : 'text-red-400',
+      value: `${totalPnLEur >= 0 ? '+' : ''}${fmt(totalPnLEur)}`,
+      icon: totalPnLEur >= 0 ? <TrendingUp size={20} className="text-green-400" /> : <TrendingDown size={20} className="text-red-400" />,
+      sub: 'Depuis l\'achat (en €)',
+      color: totalPnLEur >= 0 ? 'text-green-400' : 'text-red-400',
+      warning: false,
     },
     {
       label: 'Rendement',
@@ -84,6 +97,7 @@ export default function Dashboard() {
       icon: <Percent size={20} className="text-indigo-400" />,
       sub: 'Performance globale',
       color: totalReturn >= 0 ? 'text-green-400' : 'text-red-400',
+      warning: false,
     },
   ]
 
@@ -97,15 +111,15 @@ export default function Dashboard() {
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((c) => (
-          <div key={c.label} className="rounded-xl border border-slate-700 bg-slate-800 p-5">
+          <div key={c.label} className={`rounded-xl border bg-slate-800 p-5 ${c.warning ? 'border-yellow-500/40' : 'border-slate-700'}`}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-slate-400 text-sm">{c.label}</span>
               <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center">
-                {c.icon}
+                {c.warning ? <WifiOff size={20} className="text-yellow-500" /> : c.icon}
               </div>
             </div>
             <div className={`text-2xl font-bold ${c.color}`}>{c.value}</div>
-            <div className="text-slate-500 text-xs mt-1">{c.sub}</div>
+            <div className={`text-xs mt-1 ${c.warning ? 'text-yellow-500' : 'text-slate-500'}`}>{c.sub}</div>
           </div>
         ))}
       </div>
@@ -171,7 +185,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-white mb-4">Top 5 Positions</h2>
           <div className="space-y-2">
             {top5.map((p) => {
-              const val = p.quantity * p.currentPrice
+              const val = toEur(p.quantity * p.currentPrice, p.currency)
               const pnl = (p.currentPrice - p.purchasePrice) / p.purchasePrice * 100
               return (
                 <div key={p.id} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
@@ -185,9 +199,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-white text-sm">
-                      {fmt(val, p.currency)}
-                    </div>
+                    <div className="font-semibold text-white text-sm">{fmt(val)}</div>
                     <div className={`text-xs ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
                     </div>
