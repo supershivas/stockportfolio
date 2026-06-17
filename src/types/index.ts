@@ -7,6 +7,7 @@ export interface Position {
   currentPrice: number;
   currency: 'USD' | 'EUR';
   sector: string;
+  pea?: boolean;
 }
 
 export type Page = 'dashboard' | 'portfolio' | 'projections' | 'recommendations' | 'indicators' | 'risk' | 'undervalued' | 'dividends';

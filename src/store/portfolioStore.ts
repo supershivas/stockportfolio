@@ -3,12 +3,12 @@ import { persist } from 'zustand/middleware';
 import { Position } from '../types';
 
 const DEFAULT_POSITIONS: Position[] = [
-  { id: '1', ticker: 'AAPL', name: 'Apple Inc.', quantity: 10, purchasePrice: 150, currentPrice: 189, currency: 'USD', sector: 'Technologie' },
-  { id: '2', ticker: 'MSFT', name: 'Microsoft Corp.', quantity: 8, purchasePrice: 280, currentPrice: 375, currency: 'USD', sector: 'Technologie' },
-  { id: '3', ticker: 'NVDA', name: 'NVIDIA Corp.', quantity: 5, purchasePrice: 220, currentPrice: 495, currency: 'USD', sector: 'Semiconducteurs' },
-  { id: '4', ticker: 'MC.PA', name: 'LVMH', quantity: 3, purchasePrice: 750, currentPrice: 820, currency: 'EUR', sector: 'Luxe' },
-  { id: '5', ticker: 'CW8.PA', name: 'MSCI World ETF', quantity: 50, purchasePrice: 35, currentPrice: 42, currency: 'EUR', sector: 'ETF Monde' },
-  { id: '6', ticker: 'PE500.PA', name: 'S&P 500 ETF', quantity: 20, purchasePrice: 45, currentPrice: 52, currency: 'EUR', sector: 'ETF USA' },
+  { id: '1', ticker: 'AAPL',    name: 'Apple Inc.',        quantity: 10, purchasePrice: 150, currentPrice: 200,  currency: 'USD', sector: 'Technologie',   pea: false },
+  { id: '2', ticker: 'MSFT',    name: 'Microsoft Corp.',   quantity: 8,  purchasePrice: 280, currentPrice: 420,  currency: 'USD', sector: 'Technologie',   pea: false },
+  { id: '3', ticker: 'NVDA',    name: 'NVIDIA Corp.',      quantity: 5,  purchasePrice: 220, currentPrice: 130,  currency: 'USD', sector: 'Semiconducteurs',pea: false },
+  { id: '4', ticker: 'MC.PA',   name: 'LVMH',              quantity: 3,  purchasePrice: 750, currentPrice: 680,  currency: 'EUR', sector: 'Luxe',          pea: true  },
+  { id: '5', ticker: 'CW8.PA',  name: 'Amundi MSCI World', quantity: 50, purchasePrice: 380, currentPrice: 450,  currency: 'EUR', sector: 'ETF Monde',     pea: true  },
+  { id: '6', ticker: 'PE500.PA',name: 'Amundi S&P 500 ETF',quantity: 20, purchasePrice: 30,  currentPrice: 38,   currency: 'EUR', sector: 'ETF USA',       pea: true  },
 ];
 
 interface PortfolioState {

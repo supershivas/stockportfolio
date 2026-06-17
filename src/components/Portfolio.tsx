@@ -60,6 +60,7 @@ export default function Portfolio() {
               sector: stock.sector,
               currency: stock.currency,
               currentPrice: stock.currentPrice,
+              pea: stock.pea,
             },
           }
         : m
@@ -180,7 +181,12 @@ export default function Portfolio() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-300">{p.name}</td>
-                    <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span></td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span>
+                        {p.pea && <span className="px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-300 font-medium">PEA</span>}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-slate-300">{p.quantity}</td>
                     <td className="px-4 py-3 text-slate-300">{fmt(toEur(p.purchasePrice, p.currency))}</td>
                     <td className="px-4 py-3 text-white font-medium">{fmt(toEur(p.currentPrice, p.currency))}</td>
