@@ -159,7 +159,7 @@ export default function RiskAnalysis() {
               tickFormatter={(v: number) => `${v}%`}
             />
             <Tooltip
-              contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', fontSize: '12px' }}
+              contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', fontSize: '12px', color: '#e2e8f0' }} itemStyle={{ color: '#e2e8f0' }}
               formatter={(v: number) => [`${v.toFixed(2)}%`, 'Drawdown']}
               labelFormatter={(l: number) => `Mois ${l}`}
             />

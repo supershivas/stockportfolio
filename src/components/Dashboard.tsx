@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Euro, Percent, RefreshCw, WifiOff } from 'luc
 import Sources from './Sources'
 import MarketBulletin from './MarketBulletin'
 import {
-  LineChart, Line, ResponsiveContainer, Tooltip,
+  LineChart, Line, YAxis, ResponsiveContainer, Tooltip,
   PieChart, Pie, Cell, Legend
 } from 'recharts'
 import { useLiveQuotes } from '../hooks/useLiveQuotes'
@@ -164,9 +164,11 @@ export default function Dashboard() {
                 </div>
                 <ResponsiveContainer width="100%" height={50}>
                   <LineChart data={sparkData}>
+                    <YAxis domain={['dataMin', 'dataMax']} hide />
                     <Line type="monotone" dataKey="v" stroke={change >= 0 ? '#22c55e' : '#f87171'} strokeWidth={2} dot={false} />
                     <Tooltip
-                      contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px' }}
+                      contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px', color: '#e2e8f0' }}
+                      itemStyle={{ color: '#e2e8f0' }}
                       labelFormatter={() => ''}
                       formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.label]}
                     />
@@ -229,7 +231,8 @@ export default function Dashboard() {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px' }}
+                contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px', color: '#e2e8f0' }}
+                itemStyle={{ color: '#e2e8f0' }}
                 formatter={(v: number) => [fmt(v), '']}
               />
               <Legend

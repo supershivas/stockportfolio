@@ -1,5 +1,5 @@
 import { marketIndicators } from '../data/indicators'
-import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
+import { LineChart, Line, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import { TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react'
 import { useLiveQuotes } from '../hooks/useLiveQuotes'
 import { INDICATOR_TICKERS } from '../services/marketData'
@@ -94,6 +94,7 @@ export default function Indicators() {
               {/* Sparkline */}
               <ResponsiveContainer width="100%" height={40}>
                 <LineChart data={sparkData}>
+                    <YAxis domain={['dataMin', 'dataMax']} hide />
                   <Line
                     type="monotone"
                     dataKey="v"
@@ -102,7 +103,7 @@ export default function Indicators() {
                     dot={false}
                   />
                   <Tooltip
-                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px' }}
+                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: '#e2e8f0' }} itemStyle={{ color: '#e2e8f0' }}
                     labelFormatter={() => ''}
                     formatter={(v: number) => [`${v} ${ind.unit}`, ind.name]}
                   />
