@@ -1,10 +1,14 @@
 import { useState, useCallback, useEffect } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
-import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from '../data/stockDatabase'
 import { fetchMultipleQuotes, fetchQuote, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
+import { appendPrice, getHistory, PricePoint } from '../services/priceHistory'
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine,
+} from 'recharts'
 
 const LAST_UPDATE_KEY = 'portfolio_last_price_update'
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
@@ -27,6 +31,73 @@ const EMPTY: Omit<Position, 'id'> = {
   sector: '',
 }
 
+function formatDate(ts: number) {
+  return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+}
+
+function PriceHistoryChart({ ticker, purchasePrice, currency }: { ticker: string; purchasePrice: number; currency: string }) {
+  const history: PricePoint[] = getHistory(ticker)
+
+  if (history.length < 2) {
+    return (
+      <p className="text-xs text-slate-500 italic py-2">
+        Pas encore assez de données — l'historique se construit à chaque mise à jour des cours.
+      </p>
+    )
+  }
+
+  const currencySymbol = currency === 'USD' ? '$' : '€'
+  const data = history.map((p) => ({ date: formatDate(p.ts), price: p.price }))
+  const prices = history.map((p) => p.price)
+  const minP = Math.min(...prices)
+  const maxP = Math.max(...prices)
+  const first = prices[0]
+  const last = prices[prices.length - 1]
+  const rising = last >= first
+  const color = rising ? '#22c55e' : '#f87171'
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center gap-4 mb-2 text-xs text-slate-400">
+        <span>Min : <strong className="text-slate-200">{minP.toFixed(2)}{currencySymbol}</strong></span>
+        <span>Max : <strong className="text-slate-200">{maxP.toFixed(2)}{currencySymbol}</strong></span>
+        <span>Prix d'achat : <strong className="text-slate-200">{purchasePrice.toFixed(2)}{currencySymbol}</strong></span>
+        <span className={rising ? 'text-green-400' : 'text-red-400'}>
+          {rising ? '▲' : '▼'} {Math.abs(((last - first) / first) * 100).toFixed(2)}% sur la période
+        </span>
+      </div>
+      <ResponsiveContainer width="100%" height={120}>
+        <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={`grad-${ticker}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
+          <Tooltip
+            contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#e2e8f0' }}
+            itemStyle={{ color: '#e2e8f0' }}
+            formatter={(v: number) => [`${v.toFixed(2)}${currencySymbol}`, 'Prix']}
+          />
+          <ReferenceLine y={purchasePrice} stroke="#6366f1" strokeDasharray="4 3" strokeWidth={1} />
+          <Area
+            type="monotone"
+            dataKey="price"
+            stroke={color}
+            strokeWidth={2}
+            fill={`url(#grad-${ticker})`}
+            dot={false}
+            activeDot={{ r: 3, fill: color }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+      <p className="text-xs text-slate-600 mt-1">— Ligne pointillée = prix d'achat · {history.length} point{history.length > 1 ? 's' : ''} enregistré{history.length > 1 ? 's' : ''}</p>
+    </div>
+  )
+}
+
 export default function Portfolio() {
   const { positions, addPosition, updatePosition, removePosition } = usePortfolioStore()
   const [modal, setModal] = useState<{ type: 'add' | 'edit'; data: Omit<Position, 'id'>; id?: string } | null>(null)
@@ -37,6 +108,7 @@ export default function Portfolio() {
   const [eurUsd, setEurUsd] = useState(1.08)
   const [fetchingLivePrice, setFetchingLivePrice] = useState(false)
   const [showUpdateReminder, setShowUpdateReminder] = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     if (isApiConfigured()) fetchEurUsdRate().then(setEurUsd)
@@ -105,7 +177,11 @@ export default function Portfolio() {
     let updated = 0
     quotes.forEach((q, ticker) => {
       const pos = positions.find((p) => p.ticker === ticker)
-      if (pos) { updatePosition(pos.id, { currentPrice: q.price }); updated++ }
+      if (pos) {
+        updatePosition(pos.id, { currentPrice: q.price })
+        appendPrice(ticker, q.price)
+        updated++
+      }
     })
     setRefreshing(false)
     if (updated > 0) {
@@ -148,7 +224,7 @@ export default function Portfolio() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Mon Portfolio</h1>
-          <p className="text-slate-400 text-sm mt-1">Ajoutez vos titres via la recherche (actions, ETF, PEA), suivez prix d'achat, valeur actuelle et P&L en euros. Cliquez « Actualiser » pour mettre à jour les cours via Finnhub.</p>
+          <p className="text-slate-400 text-sm mt-1">Ajoutez vos titres via la recherche (actions, ETF, PEA), suivez prix d'achat, valeur actuelle et P&L en euros. Cliquez sur une ligne pour voir l'historique des cours.</p>
         </div>
         <div className="flex items-center gap-3">
           {refreshMsg && <span className="text-xs text-slate-400">{refreshMsg}</span>}
@@ -195,7 +271,7 @@ export default function Portfolio() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-700">
-                {['Ticker', 'Nom', 'Secteur', 'Qté', 'Prix Achat', 'Prix Actuel', 'Valeur', 'P&L', 'Rend.', 'Actions'].map((h) => (
+                {['', 'Ticker', 'Nom', 'Secteur', 'Qté', 'Prix Achat', 'Prix Actuel', 'Valeur', 'P&L', 'Rend.', 'Actions'].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -205,57 +281,87 @@ export default function Portfolio() {
                 const value = toEur(p.quantity * p.currentPrice, p.currency)
                 const pnl = toEur(p.quantity * (p.currentPrice - p.purchasePrice), p.currency)
                 const ret = ((p.currentPrice - p.purchasePrice) / p.purchasePrice) * 100
+                const isExpanded = expandedId === p.id
+                const historyLen = getHistory(p.ticker).length
                 return (
-                  <tr key={p.id} className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                          <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
+                  <>
+                    <tr
+                      key={p.id}
+                      className={`border-b border-slate-700 cursor-pointer transition-colors ${isExpanded ? 'bg-slate-700/40' : 'hover:bg-slate-700/30'}`}
+                      onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                    >
+                      <td className="px-3 py-3 text-slate-500">
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+                            <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-white">{p.ticker}</span>
+                            {historyLen > 0 && (
+                              <span className="ml-1.5 text-xs text-slate-500">{historyLen}pt</span>
+                            )}
+                          </div>
+                          {p.currency === 'USD' && <span className="text-xs text-slate-500">$→€</span>}
                         </div>
-                        <span className="font-medium text-white">{p.ticker}</span>
-                        {p.currency === 'USD' && <span className="text-xs text-slate-500">$→€</span>}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-300">{p.name}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span>
-                        {p.pea && <span className="px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-300 font-medium">PEA</span>}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-300">{p.quantity}</td>
-                    <td className="px-4 py-3 text-slate-300">{fmt(toEur(p.purchasePrice, p.currency))}</td>
-                    <td className="px-4 py-3 text-white font-medium">{fmt(toEur(p.currentPrice, p.currency))}</td>
-                    <td className="px-4 py-3 text-white font-semibold">{fmt(value)}</td>
-                    <td className={`px-4 py-3 font-medium ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {pnl >= 0 ? '+' : ''}{fmt(pnl)}
-                    </td>
-                    <td className={`px-4 py-3 font-medium ${ret >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {ret >= 0 ? '+' : ''}{ret.toFixed(2)}%
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => { setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id }); setAutoFilled(false) }}
-                          className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(p.id)}
-                          className="p-1.5 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="px-4 py-3 text-slate-300">{p.name}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-slate-700 text-slate-300">{p.sector}</span>
+                          {p.pea && <span className="px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-300 font-medium">PEA</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-300">{p.quantity}</td>
+                      <td className="px-4 py-3 text-slate-300">{fmt(toEur(p.purchasePrice, p.currency))}</td>
+                      <td className="px-4 py-3 text-white font-medium">{fmt(toEur(p.currentPrice, p.currency))}</td>
+                      <td className="px-4 py-3 text-white font-semibold">{fmt(value)}</td>
+                      <td className={`px-4 py-3 font-medium ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {pnl >= 0 ? '+' : ''}{fmt(pnl)}
+                      </td>
+                      <td className={`px-4 py-3 font-medium ${ret >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {ret >= 0 ? '+' : ''}{ret.toFixed(2)}%
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => { setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id }); setAutoFilled(false) }}
+                            className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(p.id)}
+                            className="p-1.5 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr key={`${p.id}-detail`} className="border-b border-slate-700 bg-slate-900/50">
+                        <td colSpan={11} className="px-6 py-4">
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                            Historique du cours — {p.ticker}
+                          </p>
+                          <PriceHistoryChart
+                            ticker={p.ticker}
+                            purchasePrice={p.purchasePrice}
+                            currency={p.currency}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 )
               })}
             </tbody>
             <tfoot>
               <tr className="bg-slate-900/60 border-t-2 border-slate-600">
-                <td colSpan={6} className="px-4 py-3 font-semibold text-slate-300">TOTAL</td>
+                <td colSpan={7} className="px-4 py-3 font-semibold text-slate-300">TOTAL</td>
                 <td className="px-4 py-3 font-bold text-white">{fmt(totalValue)}</td>
                 <td className={`px-4 py-3 font-bold ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {totalPnL >= 0 ? '+' : ''}{fmt(totalPnL)}
