@@ -35,13 +35,25 @@ function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
 }
 
-function PriceHistoryChart({ ticker, purchasePrice, currency }: { ticker: string; purchasePrice: number; currency: string }) {
+function PriceHistoryChart({ ticker, purchasePrice, currency, version }: { ticker: string; purchasePrice: number; currency: string; version: number }) {
   const history: PricePoint[] = getHistory(ticker)
+  void version // consumed only to trigger re-render
 
-  if (history.length < 2) {
+  if (history.length === 0) {
     return (
       <p className="text-xs text-slate-500 italic py-2">
-        Pas encore assez de données — l'historique se construit à chaque mise à jour des cours.
+        Pas encore de données — l'historique se construit à chaque mise à jour des cours.
+      </p>
+    )
+  }
+
+  if (history.length === 1) {
+    const p = history[0]
+    const currencySymbol = currency === 'USD' ? '$' : '€'
+    return (
+      <p className="text-xs text-slate-400 py-2">
+        1 point enregistré le {formatDate(p.ts)} : <strong className="text-white">{p.price.toFixed(2)}{currencySymbol}</strong>.
+        La courbe apparaîtra dès la prochaine mise à jour.
       </p>
     )
   }
@@ -109,6 +121,8 @@ export default function Portfolio() {
   const [fetchingLivePrice, setFetchingLivePrice] = useState(false)
   const [showUpdateReminder, setShowUpdateReminder] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [historyVersion, setHistoryVersion] = useState(0)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     if (isApiConfigured()) fetchEurUsdRate().then(setEurUsd)
@@ -137,10 +151,18 @@ export default function Portfolio() {
         appendPrice(modal.data.ticker, modal.data.currentPrice)
         markUpdated()
         setShowUpdateReminder(false)
+        setHistoryVersion((v) => v + 1)
+        const pts = getHistory(modal.data.ticker).length
+        showToast(`${modal.data.ticker} mis à jour · ${pts} point${pts > 1 ? 's' : ''} dans l'historique`)
       }
     }
     setModal(null)
     setAutoFilled(false)
+  }
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3500)
   }
 
   const handleSelectStock = useCallback(async (stock: StockSearchResult) => {
@@ -196,6 +218,8 @@ export default function Portfolio() {
     if (updated > 0) {
       markUpdated()
       setShowUpdateReminder(false)
+      setHistoryVersion((v) => v + 1)
+      showToast(`${updated} cours mis à jour · historique enregistré`)
     }
     setRefreshMsg(updated > 0 ? `${updated} cours mis à jour ✓` : 'Aucune donnée disponible.')
     setTimeout(() => setRefreshMsg(''), 4000)
@@ -360,6 +384,7 @@ export default function Portfolio() {
                             ticker={p.ticker}
                             purchasePrice={p.purchasePrice}
                             currency={p.currency}
+                            version={historyVersion}
                           />
                         </td>
                       </tr>
@@ -439,6 +464,14 @@ export default function Portfolio() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-800 border border-green-500/40 text-green-300 text-sm px-4 py-3 rounded-xl shadow-xl animate-fade-in">
+          <Check size={15} className="text-green-400 shrink-0" />
+          {toast}
         </div>
       )}
 
