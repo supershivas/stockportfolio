@@ -196,8 +196,8 @@ export default function Dashboard() {
                         <YAxis domain={['dataMin', 'dataMax']} hide />
                         <Line type="monotone" dataKey="v" stroke={change >= 0 ? '#22c55e' : '#f87171'} strokeWidth={2} dot={false} />
                         <Tooltip
-                          contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#e2e8f0' }}
-                          itemStyle={{ color: '#e2e8f0' }}
+                          contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
+                          itemStyle={{ color: 'var(--text-primary)' }}
                           labelFormatter={() => ''}
                           formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.label]}
                         />
@@ -236,8 +236,8 @@ export default function Dashboard() {
                   <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                   <YAxis domain={['dataMin - 500', 'dataMax + 500']} hide />
                   <Tooltip
-                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#e2e8f0' }}
-                    itemStyle={{ color: '#e2e8f0' }}
+                    contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
                     formatter={(v: number) => [fmt(v), 'Valeur']}
                   />
                   <Area type="monotone" dataKey="value" stroke={histColor} strokeWidth={2} fill="url(#portfolioGrad)" dot={false} activeDot={{ r: 3 }} />

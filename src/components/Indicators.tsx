@@ -103,7 +103,7 @@ export default function Indicators() {
                     dot={false}
                   />
                   <Tooltip
-                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: '#e2e8f0' }} itemStyle={{ color: '#e2e8f0' }}
+                    contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-primary)' }}
                     labelFormatter={() => ''}
                     formatter={(v: number) => [`${v} ${ind.unit}`, ind.name]}
                   />

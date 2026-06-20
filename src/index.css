@@ -25,14 +25,94 @@
   --font-sans:  'Inter', sans-serif;
   --font-title: 'Playfair Display', Georgia, serif;
   --font-mono:  'DM Mono', monospace;
+
+  /* Content / card tokens — dark mode defaults */
+  --content-bg:    #1C1C1E;
+  --card-bg:       #2C2C2E;
+  --card-bg-2:     #3A3A3C;
+  --card-border:   rgba(255,255,255,0.09);
+  --text-primary:  rgba(255,255,255,0.88);
+  --text-secondary:rgba(255,255,255,0.65);
+  --text-muted:    rgba(255,255,255,0.40);
+  --input-bg:      #3A3A3C;
+  --input-border:  rgba(255,255,255,0.12);
+  --hover-bg:      rgba(255,255,255,0.05);
+  --tooltip-bg:    #3A3A3C;
+  --chart-grid:    rgba(255,255,255,0.07);
+}
+
+/* ── Light mode ── */
+html.light {
+  --content-bg:    #F5F5F7;
+  --card-bg:       #FFFFFF;
+  --card-bg-2:     #F0F0F5;
+  --card-border:   rgba(0,0,0,0.09);
+  --text-primary:  #1C1C1E;
+  --text-secondary:#3A3A3C;
+  --text-muted:    #8E8E93;
+  --input-bg:      #F5F5F7;
+  --input-border:  rgba(0,0,0,0.12);
+  --hover-bg:      rgba(0,0,0,0.04);
+  --tooltip-bg:    #FFFFFF;
+  --chart-grid:    rgba(0,0,0,0.07);
 }
 
 body {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: var(--content-bg);
+  color: var(--text-primary);
   font-family: var(--font-sans);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 code, kbd, .mono {
   font-family: var(--font-mono);
+}
+
+/* ── Tailwind slate overrides for light mode ── */
+html.light .bg-slate-950 { background-color: var(--content-bg) !important; }
+html.light .bg-slate-900 { background-color: #F0F0F5 !important; }
+html.light .bg-slate-800 { background-color: #FFFFFF !important; }
+html.light .bg-slate-700 { background-color: #F0F0F5 !important; }
+html.light .bg-slate-700\/50 { background-color: rgba(240,240,245,0.6) !important; }
+html.light .bg-black\/60   { background-color: rgba(0,0,0,0.4) !important; }
+
+html.light .border-slate-700 { border-color: rgba(0,0,0,0.1) !important; }
+html.light .border-slate-600 { border-color: rgba(0,0,0,0.14) !important; }
+
+html.light .text-white      { color: #1C1C1E !important; }
+html.light .text-slate-100  { color: #1C1C1E !important; }
+html.light .text-slate-200  { color: #3A3A3C !important; }
+html.light .text-slate-300  { color: #4A4A4C !important; }
+html.light .text-slate-400  { color: #6B6B6B !important; }
+html.light .text-slate-500  { color: #8E8E93 !important; }
+html.light .text-slate-600  { color: #AEAEB2 !important; }
+
+/* Keep accent colors unchanged in light mode */
+html.light .text-green-400  { color: #16a34a !important; }
+html.light .text-red-400    { color: #dc2626 !important; }
+html.light .text-yellow-400 { color: #ca8a04 !important; }
+html.light .text-yellow-500 { color: #b45309 !important; }
+
+html.light .bg-green-400\/10  { background-color: rgba(22,163,74,0.1) !important; }
+html.light .bg-red-400\/10    { background-color: rgba(220,38,38,0.1) !important; }
+html.light .bg-yellow-400\/10 { background-color: rgba(202,138,4,0.1) !important; }
+
+html.light .border-green-400\/20 { border-color: rgba(22,163,74,0.25) !important; }
+html.light .border-red-400\/20   { border-color: rgba(220,38,38,0.25) !important; }
+
+/* Input / form overrides */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #F5F5F7 !important;
+  color: #1C1C1E !important;
+  border-color: rgba(0,0,0,0.15) !important;
+}
+html.light input::placeholder { color: #8E8E93 !important; }
+
+/* Recharts tooltip in light mode */
+html.light .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  color: #1C1C1E !important;
 }

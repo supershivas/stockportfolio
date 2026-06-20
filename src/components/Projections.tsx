@@ -166,7 +166,7 @@ export default function Projections() {
               tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k€`}
             />
             <Tooltip
-              contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', fontSize: '12px', color: '#e2e8f0' }} itemStyle={{ color: '#e2e8f0' }}
+              contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', fontSize: '12px', color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-primary)' }}
               formatter={(v: number, name: string) => {
                 const s = SCENARIOS.find((sc) => sc.key === name)
                 return [fmt(v), s?.label || name]

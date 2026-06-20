@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield,
-  TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign,
+  TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon,
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import { isApiConfigured } from './services/marketData'
@@ -98,11 +98,23 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
+function getInitialTheme(): 'dark' | 'light' {
+  const stored = localStorage.getItem('theme')
+  if (stored === 'light' || stored === 'dark') return stored
+  return 'dark'
+}
+
 export default function App() {
   const [page, setPage] = useState<Page>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showApiSettings, setShowApiSettings] = useState(false)
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
+  const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+    localStorage.setItem('theme', theme)
+  }, [theme])
 
   useEffect(() => {
     const interval = setInterval(() => setApiConfigured(isApiConfigured()), 1000)
@@ -125,7 +137,7 @@ export default function App() {
   const currentLabel = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.id === page)?.label ?? ''
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--content-bg)', color: 'var(--text-primary)' }}>
       {showApiSettings && <ApiSettings onClose={() => { setShowApiSettings(false); setApiConfigured(isApiConfigured()) }} />}
 
       {sidebarOpen && (
@@ -177,7 +189,7 @@ export default function App() {
                       {/* Tooltip */}
                       <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover:block lg:block">
                         <div className="text-xs rounded-lg px-3 py-2 shadow-xl max-w-[220px] leading-relaxed whitespace-normal"
-                          style={{ background: '#2C2C2E', color: 'var(--sidebar-fg)', border: '1px solid var(--sidebar-border)' }}>
+                          style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)', border: '1px solid var(--sidebar-border)' }}>
                           {item.tooltip}
                         </div>
                       </div>
@@ -191,19 +203,31 @@ export default function App() {
 
         {/* Footer */}
         <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
-          <button
-            onClick={() => setShowApiSettings(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors"
-            style={{ border: '1px solid var(--sidebar-border)', color: 'var(--sidebar-muted)' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }}
-          >
-            {apiConfigured
-              ? <Wifi size={14} className="text-green-400 shrink-0" />
-              : <WifiOff size={14} className="shrink-0" style={{ color: 'var(--sidebar-icon)' }} />}
-            <span className="flex-1 text-left">{apiConfigured ? 'Temps réel actif' : 'Données simulées'}</span>
-            <Settings size={12} />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowApiSettings(true)}
+              className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors"
+              style={{ border: '1px solid var(--sidebar-border)', color: 'var(--sidebar-muted)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }}
+            >
+              {apiConfigured
+                ? <Wifi size={14} className="text-green-400 shrink-0" />
+                : <WifiOff size={14} className="shrink-0" style={{ color: 'var(--sidebar-icon)' }} />}
+              <span className="flex-1 text-left">{apiConfigured ? 'Temps réel actif' : 'Données simulées'}</span>
+              <Settings size={12} />
+            </button>
+            <button
+              onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+              className="flex items-center justify-center w-9 h-9 rounded-md text-xs transition-colors"
+              style={{ border: '1px solid var(--sidebar-border)', color: 'var(--sidebar-muted)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }}
+              title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+            >
+              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+          </div>
           <p className="text-xs text-center" style={{ color: 'var(--sidebar-muted)', opacity: 0.4 }}>PortfolioAI v0.1</p>
         </div>
       </aside>

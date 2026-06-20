@@ -97,8 +97,8 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
           <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
           <YAxis domain={[Math.min(minG, 0) - Math.abs(minG) * 0.1, maxG + Math.abs(maxG) * 0.1]} hide />
           <Tooltip
-            contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#e2e8f0' }}
-            itemStyle={{ color: '#e2e8f0' }}
+            contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
+            itemStyle={{ color: 'var(--text-primary)' }}
             formatter={(v: number) => [`${v >= 0 ? '+' : ''}${fmtVal(v)}`, 'Gain net']}
           />
           <ReferenceLine y={0} stroke="#475569" strokeDasharray="4 3" strokeWidth={1} />
