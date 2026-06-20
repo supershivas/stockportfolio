@@ -153,7 +153,7 @@ export default function App() {
         <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent)' }}>
-              <TrendingUp size={15} className="text-white" />
+              <TrendingUp size={15} style={{ color: '#ffffff' }} />
             </div>
             <span className="font-bold text-base font-title" style={{ color: 'var(--sidebar-fg)' }}>PortfolioAI</span>
           </div>
