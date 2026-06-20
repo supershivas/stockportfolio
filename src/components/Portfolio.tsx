@@ -128,8 +128,17 @@ export default function Portfolio() {
 
   const handleSave = () => {
     if (!modal) return
-    if (modal.type === 'add') addPosition(modal.data)
-    else if (modal.id) updatePosition(modal.id, modal.data)
+    if (modal.type === 'add') {
+      addPosition(modal.data)
+    } else if (modal.id) {
+      const prev = positions.find((p) => p.id === modal.id)
+      updatePosition(modal.id, modal.data)
+      if (prev && modal.data.currentPrice !== prev.currentPrice) {
+        appendPrice(modal.data.ticker, modal.data.currentPrice)
+        markUpdated()
+        setShowUpdateReminder(false)
+      }
+    }
     setModal(null)
     setAutoFilled(false)
   }
