@@ -133,16 +133,19 @@ export default function App() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-30 w-60 bg-slate-900 border-r border-slate-700 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside
+        style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--sidebar-border)' }}
+        className={`fixed lg:static inset-y-0 left-0 z-30 w-[264px] flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      >
         {/* Logo */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700">
+        <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent)' }}>
               <TrendingUp size={15} className="text-white" />
             </div>
-            <span className="font-bold text-base text-white">PortfolioAI</span>
+            <span className="font-bold text-base font-title" style={{ color: 'var(--sidebar-fg)' }}>PortfolioAI</span>
           </div>
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
+          <button className="lg:hidden" style={{ color: 'var(--sidebar-muted)' }} onClick={() => setSidebarOpen(false)}>
             <X size={18} />
           </button>
         </div>
@@ -151,59 +154,68 @@ export default function App() {
         <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
-              <p className="px-3 mb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{group.label}</p>
+              <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--sidebar-muted)', opacity: 0.7 }}>{group.label}</p>
               <div className="space-y-0.5">
-                {group.items.map((item) => (
-                  <div key={item.id} className="relative group">
-                    <button
-                      onClick={() => { setPage(item.id); setSidebarOpen(false) }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        page === item.id
-                          ? 'bg-indigo-600 text-white'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
-                    >
-                      <span className="shrink-0">{item.icon}</span>
-                      <span className="flex-1 text-left">{item.label}</span>
-                      {page === item.id && <ChevronRight size={14} className="shrink-0" />}
-                    </button>
-                    {/* Tooltip */}
-                    <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover:block lg:block">
-                      <div className="bg-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 shadow-xl max-w-[220px] leading-relaxed whitespace-normal border border-slate-600">
-                        {item.tooltip}
+                {group.items.map((item) => {
+                  const active = page === item.id
+                  return (
+                    <div key={item.id} className="relative group">
+                      <button
+                        onClick={() => { setPage(item.id); setSidebarOpen(false) }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-all"
+                        style={{
+                          background: active ? 'var(--sidebar-selected)' : 'transparent',
+                          color: active ? 'var(--sidebar-selected-fg)' : 'var(--sidebar-muted)',
+                        }}
+                        onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' } }}
+                        onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' } }}
+                      >
+                        <span className="shrink-0">{item.icon}</span>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        {active && <ChevronRight size={14} className="shrink-0" />}
+                      </button>
+                      {/* Tooltip */}
+                      <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover:block lg:block">
+                        <div className="text-xs rounded-lg px-3 py-2 shadow-xl max-w-[220px] leading-relaxed whitespace-normal"
+                          style={{ background: '#2C2C2E', color: 'var(--sidebar-fg)', border: '1px solid var(--sidebar-border)' }}>
+                          {item.tooltip}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           ))}
         </nav>
 
         {/* Footer */}
-        <div className="px-3 py-3 border-t border-slate-700 space-y-2">
+        <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
           <button
             onClick={() => setShowApiSettings(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white text-xs transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors"
+            style={{ border: '1px solid var(--sidebar-border)', color: 'var(--sidebar-muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }}
           >
             {apiConfigured
               ? <Wifi size={14} className="text-green-400 shrink-0" />
-              : <WifiOff size={14} className="text-slate-500 shrink-0" />}
+              : <WifiOff size={14} className="shrink-0" style={{ color: 'var(--sidebar-icon)' }} />}
             <span className="flex-1 text-left">{apiConfigured ? 'Temps réel actif' : 'Données simulées'}</span>
             <Settings size={12} />
           </button>
-          <p className="text-xs text-slate-600 text-center">PortfolioAI v0.1</p>
+          <p className="text-xs text-center" style={{ color: 'var(--sidebar-muted)', opacity: 0.4 }}>PortfolioAI v0.1</p>
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile topbar */}
-        <header className="bg-slate-900 border-b border-slate-700 px-4 py-3 flex items-center gap-3 lg:hidden">
-          <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-white">
+        <header className="px-4 py-3 flex items-center gap-3 lg:hidden" style={{ background: 'var(--sidebar-bg)', borderBottom: '1px solid var(--sidebar-border)' }}>
+          <button onClick={() => setSidebarOpen(true)} style={{ color: 'var(--sidebar-muted)' }}>
             <Menu size={22} />
           </button>
-          <span className="font-semibold text-white">{currentLabel || 'PortfolioAI'}</span>
+          <span className="font-semibold font-title" style={{ color: 'var(--sidebar-fg)' }}>{currentLabel || 'PortfolioAI'}</span>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">

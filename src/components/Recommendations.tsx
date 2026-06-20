@@ -49,7 +49,7 @@ export default function Recommendations() {
             onClick={() => setSelected(r.house)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               selected === r.house
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-accent text-white'
                 : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500'
             }`}
           >
@@ -61,13 +61,13 @@ export default function Recommendations() {
       {/* Macro outlook */}
       <div className="rounded-xl border border-slate-700 bg-slate-800 p-6">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-indigo-400 font-bold text-sm">{rec.house.slice(0, 2)}</span>
+          <div className="w-12 h-12 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-accent/80 font-bold text-sm">{rec.house.slice(0, 2)}</span>
           </div>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
               <h2 className="text-lg font-semibold text-white">{rec.house} — Perspectives Mi-2026</h2>
-              <span className="text-xs bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded">Juin 2026</span>
+              <span className="text-xs bg-accent/15 text-accent/80 border border-accent/30 px-2 py-0.5 rounded">Juin 2026</span>
             </div>
             <p className="text-slate-300 text-sm mt-2 leading-relaxed">{rec.outlook}</p>
           </div>
@@ -150,7 +150,7 @@ export default function Recommendations() {
             <tbody>
               {rec.topFunds.map((f) => (
                 <tr key={f.ticker} className="border-b border-slate-700 hover:bg-slate-700/50">
-                  <td className="px-4 py-3 font-mono font-bold text-indigo-400">{f.ticker}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-accent/80">{f.ticker}</td>
                   <td className="px-4 py-3 text-white">{f.name}</td>
                   <td className="px-4 py-3 text-slate-300">{f.category}</td>
                   <td className="px-4 py-3">

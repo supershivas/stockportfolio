@@ -102,7 +102,7 @@ export default function DividendTracker() {
     {
       label: 'Revenu Mensuel Moyen',
       value: fmt(totalMonthlyIncome),
-      icon: <TrendingUp size={20} className="text-indigo-400" />,
+      icon: <TrendingUp size={20} className="text-accent/80" />,
       sub: 'Moyenne lissée',
       color: 'text-white',
     },
@@ -199,7 +199,7 @@ export default function DividendTracker() {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                filter === f ? 'bg-indigo-600 text-white' : 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white'
+                filter === f ? 'bg-accent text-white' : 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white'
               }`}
             >
               {f === 'all' ? 'Tous' : f === 'portfolio' ? 'Mon Portfolio' : 'PEA Éligible'}
@@ -236,12 +236,12 @@ export default function DividendTracker() {
                   <tr key={d.ticker} className={`border-b border-slate-700 hover:bg-slate-700/50 transition-colors ${isInPortfolio ? 'bg-indigo-900/10' : ''}`}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                          <span className="text-xs font-bold text-indigo-400">{d.ticker.slice(0, 2)}</span>
+                        <div className="w-7 h-7 rounded bg-accent/20 border border-accent/30 flex items-center justify-center">
+                          <span className="text-xs font-bold text-accent/80">{d.ticker.slice(0, 2)}</span>
                         </div>
                         <span className="font-medium text-white">{d.ticker}</span>
                         {d.aristocrat && <span title="Dividend Aristocrat"><Star size={11} className="text-amber-400 fill-amber-400" /></span>}
-                        {isInPortfolio && <span className="text-xs bg-indigo-600/30 text-indigo-300 px-1.5 py-0.5 rounded">En portefeuille</span>}
+                        {isInPortfolio && <span className="text-xs bg-accent/30 text-accent/70 px-1.5 py-0.5 rounded">En portefeuille</span>}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{d.name}</td>
@@ -309,7 +309,7 @@ export default function DividendTracker() {
                 }, 0)
               const isCurrentMonth = i === new Date().getMonth()
               return (
-                <div key={month} className={`rounded-lg p-3 border ${isCurrentMonth ? 'border-indigo-500/50 bg-indigo-900/20' : 'border-slate-700 bg-slate-900/40'}`}>
+                <div key={month} className={`rounded-lg p-3 border ${isCurrentMonth ? 'border-accent/50 bg-indigo-900/20' : 'border-slate-700 bg-slate-900/40'}`}>
                   <div className="text-xs text-slate-400 font-medium mb-1">{month}</div>
                   <div className={`text-sm font-bold ${monthIncome > 0 ? 'text-green-400' : 'text-slate-600'}`}>
                     {monthIncome > 0 ? fmt(monthIncome) : '—'}

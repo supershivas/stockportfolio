@@ -38,7 +38,7 @@ export default function ApiSettings({ onClose }: Props) {
       <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <Key size={18} className="text-indigo-400" />
+            <Key size={18} className="text-accent/80" />
             <h2 className="text-lg font-semibold text-white">Données en temps réel</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={20} /></button>
@@ -53,7 +53,7 @@ export default function ApiSettings({ onClose }: Props) {
             href="https://finnhub.io/register"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+            className="inline-flex items-center gap-1.5 text-accent/80 hover:text-accent/70 text-sm font-medium"
           >
             <ExternalLink size={13} />
             Créer un compte gratuit sur Finnhub
@@ -68,7 +68,7 @@ export default function ApiSettings({ onClose }: Props) {
               value={key}
               onChange={(e) => { setKey(e.target.value); setStatus('idle') }}
               placeholder="xxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent"
             />
           </div>
 
@@ -103,7 +103,7 @@ export default function ApiSettings({ onClose }: Props) {
             <button
               onClick={handleSave}
               disabled={status !== 'ok'}
-              className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-medium transition-colors"
+              className="flex-1 py-2 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 text-white text-sm font-medium transition-colors"
             >
               Enregistrer
             </button>

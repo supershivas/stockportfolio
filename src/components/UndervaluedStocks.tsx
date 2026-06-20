@@ -179,7 +179,7 @@ function ExpandedRow({ stock, score }: ExpandedRowProps) {
           <ul className="space-y-1.5 mb-3">
             {score.signals.map((s, i) => (
               <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                <span className="text-indigo-400 mt-0.5 shrink-0">•</span>
+                <span className="text-accent/80 mt-0.5 shrink-0">•</span>
                 {s}
               </li>
             ))}
@@ -453,8 +453,8 @@ export default function UndervaluedStocks() {
                     {/* Ticker */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-indigo-400">{stock.ticker.slice(0, 2)}</span>
+                        <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center shrink-0">
+                          <span className="text-xs font-bold text-accent/80">{stock.ticker.slice(0, 2)}</span>
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">

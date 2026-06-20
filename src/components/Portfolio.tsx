@@ -252,7 +252,7 @@ export default function Portfolio() {
       ) : (
         <input
           type={type}
-          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent"
           value={modal?.data[key] as string | number || ''}
           onChange={(e) =>
             setModal((m) =>
@@ -284,7 +284,7 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => { setModal({ type: 'add', data: { ...EMPTY } }); setAutoFilled(false) }}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             <Plus size={16} />
             Ajouter
@@ -340,8 +340,8 @@ export default function Portfolio() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                            <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
+                          <div className="w-7 h-7 rounded bg-accent/20 border border-accent/30 flex items-center justify-center">
+                            <span className="text-xs font-bold text-accent/80">{p.ticker.slice(0, 2)}</span>
                           </div>
                           <div>
                             <span className="font-medium text-white">{p.ticker}</span>
@@ -443,7 +443,7 @@ export default function Portfolio() {
                 {autoFilled && (
                   <div className="mt-2 flex items-center gap-1.5 text-xs">
                     {fetchingLivePrice ? (
-                      <><RefreshCw size={12} className="animate-spin text-indigo-400" /><span className="text-indigo-400">Récupération du cours en temps réel…</span></>
+                      <><RefreshCw size={12} className="animate-spin text-accent/80" /><span className="text-accent/80">Récupération du cours en temps réel…</span></>
                     ) : (
                       <><Check size={12} className="text-green-400" /><span className="text-green-400">Données importées — vérifiez et complétez si besoin</span></>
                     )}
@@ -470,7 +470,7 @@ export default function Portfolio() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors"
               >
                 <Check size={16} />
                 {modal.type === 'add' ? 'Ajouter' : 'Enregistrer'}

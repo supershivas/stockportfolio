@@ -2,7 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens (source: design-tokens.json) ── */
+:root {
+  --accent:              #C0392B;
+  --accent-hover:        #9B2D22;
+  --accent-fg:           #ffffff;
+
+  --sidebar-bg:          #1C1C1E;
+  --sidebar-fg:          rgba(255,255,255,0.88);
+  --sidebar-muted:       rgba(255,255,255,0.55);
+  --sidebar-icon:        #8E8E93;
+  --sidebar-hover:       rgba(255,255,255,0.07);
+  --sidebar-selected:    rgba(192,57,43,0.22);
+  --sidebar-selected-fg: #E8887E;
+  --sidebar-border:      rgba(196,201,209,0.18);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 12px;
+
+  --font-sans:  'Inter', sans-serif;
+  --font-title: 'Playfair Display', Georgia, serif;
+  --font-mono:  'DM Mono', monospace;
+}
+
 body {
   background-color: #0f172a;
   color: #f1f5f9;
+  font-family: var(--font-sans);
+}
+
+code, kbd, .mono {
+  font-family: var(--font-mono);
 }

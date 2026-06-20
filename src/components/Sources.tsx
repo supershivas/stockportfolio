@@ -9,7 +9,7 @@ export default function Sources({ sources }: { sources: Source[] }) {
       <div className="flex flex-wrap gap-4">
         {sources.map((s) => (
           <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" title={s.description}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-indigo-400 transition-colors">
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent/80 transition-colors">
             <ExternalLink size={11} />
             {s.label}
           </a>

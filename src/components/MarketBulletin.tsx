@@ -156,7 +156,7 @@ export default function MarketBulletin() {
     <div className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3">
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2">
-          <Newspaper size={14} className="text-indigo-400 shrink-0" />
+          <Newspaper size={14} className="text-accent/80 shrink-0" />
           <span className="text-xs font-semibold text-white capitalize">{today}</span>
           {!apiKey && (
             <span className="text-xs text-yellow-500/80">· contenu statique</span>

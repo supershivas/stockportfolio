@@ -19,7 +19,7 @@ const CORRELATION_MATRIX = [
 const CORR_KEYS = ['AAPL', 'MSFT', 'NVDA', 'LVMH', 'CW8', 'SP500']
 
 function corrColor(v: number): string {
-  if (v === 1) return 'bg-indigo-600 text-white'
+  if (v === 1) return 'bg-accent text-white'
   if (v >= 0.8) return 'bg-red-500/30 text-red-300'
   if (v >= 0.6) return 'bg-orange-500/20 text-orange-300'
   if (v >= 0.4) return 'bg-yellow-500/15 text-yellow-300'
@@ -65,7 +65,7 @@ export default function RiskAnalysis() {
       label: 'Beta du Portefeuille',
       value: beta.toFixed(2),
       sub: 'vs S&P 500',
-      icon: <Activity size={20} className="text-indigo-400" />,
+      icon: <Activity size={20} className="text-accent/80" />,
       desc: beta > 1.2 ? 'Portefeuille plus volatil que le marché' : 'Corrélation modérée avec le marché',
       color: beta > 1.2 ? 'text-yellow-400' : 'text-white',
     },

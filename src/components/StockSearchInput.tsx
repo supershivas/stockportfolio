@@ -77,7 +77,7 @@ export default function StockSearchInput({ onSelect, placeholder = 'Rechercher p
   }
 
   const typeColors: Record<string, string> = {
-    Action: 'bg-indigo-500/20 text-indigo-300',
+    Action: 'bg-accent/20 text-accent/70',
     ETF: 'bg-emerald-500/20 text-emerald-300',
     Obligation: 'bg-yellow-500/20 text-yellow-300',
   }
@@ -134,7 +134,7 @@ export default function StockSearchInput({ onSelect, placeholder = 'Rechercher p
           onFocus={() => { if (query) { updateDropPosition(); setOpen(true) } }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+          className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent transition-colors"
         />
       </div>
       {/* Portal-like fixed dropdown */}

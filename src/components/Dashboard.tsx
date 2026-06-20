@@ -88,7 +88,7 @@ export default function Dashboard() {
     {
       label: 'Valeur Totale',
       value: fmt(displayValue),
-      icon: <Euro size={20} className="text-indigo-400" />,
+      icon: <Euro size={20} className="text-accent/80" />,
       sub: hasLiveData ? `Temps réel · EUR/USD ${eurUsd.toFixed(4)}` : 'Données locales',
       color: 'text-white',
       warning: !hasLiveData,
@@ -112,7 +112,7 @@ export default function Dashboard() {
     {
       label: 'Rendement',
       value: `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
-      icon: <Percent size={20} className="text-indigo-400" />,
+      icon: <Percent size={20} className="text-accent/80" />,
       sub: 'Performance globale',
       color: totalReturn >= 0 ? 'text-green-400' : 'text-red-400',
       warning: false,
@@ -262,8 +262,8 @@ export default function Dashboard() {
                   <div key={p.id} className="py-2 border-b border-slate-700/60 last:border-0">
                     <div className="flex items-center gap-2">
                       {/* Avatar */}
-                      <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
+                      <div className="w-7 h-7 rounded bg-accent/20 border border-accent/30 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-accent/80">{p.ticker.slice(0, 2)}</span>
                       </div>
                       {/* Name + sparkline */}
                       <div className="flex-1 min-w-0">
