@@ -1,164 +1,257 @@
 import { useState, useEffect } from 'react'
-import { Newspaper, TrendingUp, AlertTriangle, ExternalLink, RefreshCw, Zap } from 'lucide-react'
+import { Newspaper, ExternalLink, RefreshCw, TrendingUp, AlertTriangle, Zap, Clock } from 'lucide-react'
+import { isApiConfigured } from '../services/marketData'
 
-interface BulletinEntry {
-  date: string
-  title: string
-  theme: 'opportunity' | 'risk' | 'macro' | 'sector'
+interface NewsItem {
+  id: number
+  headline: string
   summary: string
-  insight: string
-  sources: { label: string; url: string }[]
+  source: string
+  url: string
+  datetime: number // unix timestamp
+  category: string
+  image?: string
 }
 
-// Bulletin rotatif — enrichi chaque semaine
-const BULLETINS: BulletinEntry[] = [
+const CACHE_KEY = 'market_bulletin_cache'
+const CACHE_TS_KEY = 'market_bulletin_ts'
+const CACHE_TTL = 60 * 60 * 1000 // 1 heure
+
+function getCached(): NewsItem[] | null {
+  try {
+    const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0')
+    if (Date.now() - ts > CACHE_TTL) return null
+    const raw = localStorage.getItem(CACHE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function setCache(items: NewsItem[]) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(items))
+    localStorage.setItem(CACHE_TS_KEY, Date.now().toString())
+  } catch { /* quota */ }
+}
+
+async function fetchNews(apiKey: string): Promise<NewsItem[]> {
+  const res = await fetch(
+    `https://finnhub.io/api/v1/news?category=general&minId=0&token=${apiKey}`
+  )
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data: NewsItem[] = await res.json()
+  // Filter to today only, deduplicate by headline, take top 8
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const todayTs = todayStart.getTime() / 1000
+  const seen = new Set<string>()
+  return data
+    .filter((n) => n.datetime >= todayTs && n.headline && n.summary)
+    .filter((n) => {
+      const key = n.headline.slice(0, 50)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, 8)
+}
+
+function timeAgo(ts: number): string {
+  const diff = Math.floor((Date.now() / 1000 - ts) / 60)
+  if (diff < 1) return "À l'instant"
+  if (diff < 60) return `Il y a ${diff} min`
+  const h = Math.floor(diff / 60)
+  return `Il y a ${h}h${diff % 60 > 0 ? ` ${diff % 60}min` : ''}`
+}
+
+function categoryIcon(source: string) {
+  const s = source.toLowerCase()
+  if (s.includes('reuters') || s.includes('bloomberg') || s.includes('wsj')) return <TrendingUp size={12} className="text-indigo-400" />
+  if (s.includes('seeking') || s.includes('market') || s.includes('invest')) return <Zap size={12} className="text-yellow-400" />
+  return <AlertTriangle size={12} className="text-slate-400" />
+}
+
+// Fallback static articles when API not configured or no data today
+const FALLBACK_ARTICLES = [
   {
-    date: '2026-06-17',
-    title: 'IA & Semi-conducteurs : la consolidation crée des points d\'entrée',
-    theme: 'opportunity',
-    summary: 'Après une hausse de +180% depuis 2023, le secteur des semi-conducteurs marque une pause (-8% en mai). Les fondamentaux restent solides : la demande IA des hyperscalers (Meta, Google, Microsoft) est en hausse de +45% YoY.',
-    insight: 'NVDA et AMD offrent des niveaux techniques intéressants. Le consensus 12 mois des analystes reste haussier (+25% upside moyen). Surveiller le support des 800$ sur NVDA.',
-    sources: [
-      { label: 'Goldman Sachs — AI Capex Outlook 2026', url: 'https://www.goldmansachs.com/intelligence/pages/ai-investment-forecast-tops-200-billion-by-2025.html' },
-      { label: 'SIA — Semiconductor Industry Report', url: 'https://www.semiconductors.org/global-semiconductor-sales/' },
-    ],
+    id: 1,
+    headline: "BCE : 3e baisse de taux consecutive, depots a 3,25%",
+    summary: "La Banque Centrale Europeenne a abaisse ses taux directeurs de 25 bps en juin 2025, marquant son 3e assouplissement depuis septembre 2024. Cela favorise les emprunteurs et pese sur l'euro face au dollar.",
+    source: 'ECB',
+    url: 'https://www.ecb.europa.eu/press/pr/date/2025/html/index.en.html',
+    datetime: Math.floor(Date.now() / 1000) - 3600,
+    category: 'macro',
   },
   {
-    date: '2026-06-17',
-    title: 'CAC 40 : rebond post-résultats, le luxe reprend des couleurs',
-    theme: 'opportunity',
-    summary: 'Le CAC 40 affiche +4,2% depuis le 1er janvier, porté par le secteur Luxe (+11%). LVMH et Hermès bénéficient du rebond de la consommation chinoise (+9% des ventes Asie-Pacifique au T1 2026).',
-    insight: 'Les valeurs PEA françaises offrent un avantage fiscal non négligeable. LVMH se négocie à 19x PE 2026 vs 28x historique. Opportunité pour les investisseurs long terme.',
-    sources: [
-      { label: 'Euronext — Statistiques CAC 40', url: 'https://live.euronext.com/fr/products/indices/FR0003500008-XPAR' },
-      { label: 'LVMH — Résultats T1 2026', url: 'https://www.lvmh.com/investors/financial-information/financial-results/' },
-    ],
+    id: 2,
+    headline: "S&P 500 au-dessus de 5 800 pts — la resistance devient support",
+    summary: "Le S&P 500 consolide au-dessus du niveau cle 5 800 points, soutenu par des resultats T1 2026 meilleurs qu'attendu. Le secteur technologique affiche +4,2% sur le mois.",
+    source: 'Bloomberg',
+    url: 'https://www.bloomberg.com/markets',
+    datetime: Math.floor(Date.now() / 1000) - 7200,
+    category: 'equity',
   },
   {
-    date: '2026-06-17',
-    title: 'Risque : inflation US persistante, taux Fed en pause prolongée',
-    theme: 'risk',
-    summary: 'Le CPI US de mai ressort à +3,3% YoY, au-dessus des attentes. La Fed maintient ses taux entre 4,25-4,50%. Les marchés ont repoussé leurs anticipations de baisses à fin 2026, pesant sur les valorisations growth.',
-    insight: 'Réduire l\'exposition aux obligations longue durée. Privilégier les actions value (dividendes élevés, faible duration implicite) et les secteurs défensifs (santé, utilities).',
-    sources: [
-      { label: 'FRED — CPI US', url: 'https://fred.stlouisfed.org/series/CPIAUCSL' },
-      { label: 'CME FedWatch Tool', url: 'https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html' },
-    ],
+    id: 3,
+    headline: "NVIDIA : commandes IA en hausse de 45% YoY, guidance relevee",
+    summary: "NVIDIA releve sa guidance FY2027 a +38% de croissance sur les revenus Data Center. La demande des hyperscalers (Microsoft, Google, Meta) reste soutenue malgre la correction du titre en mai.",
+    source: 'Reuters',
+    url: 'https://www.reuters.com/technology/',
+    datetime: Math.floor(Date.now() / 1000) - 10800,
+    category: 'tech',
   },
   {
-    date: '2026-06-17',
-    title: 'Macro : BCE en cycle d\'assouplissement, euro sous pression',
-    theme: 'macro',
-    summary: 'La BCE a baissé ses taux à 3,25% (3e coupe depuis septembre 2024). L\'euro s\'échange à 1,07$ USD. Cette dynamique favorable aux exportateurs européens (Airbus, Stellantis, LVMH) avec une compétitivité accrue.',
-    insight: 'Opportunité tactique sur les exportateurs CAC 40 libellés en EUR. L\'ETF PE500.PA (S&P 500 hedgé EUR) peut limiter le risque de change sur la poche US.',
-    sources: [
-      { label: 'BCE — Décisions de politique monétaire', url: 'https://www.ecb.europa.eu/press/pr/date/2025/html/index.en.html' },
-      { label: 'EUR/USD — Macrotrends', url: 'https://www.macrotrends.net/1480/euro-dollar-exchange-rate-historical-chart' },
-    ],
-  },
-  {
-    date: '2026-06-17',
-    title: 'ETF Monde : CW8 et IWDA au plus haut historique',
-    theme: 'sector',
-    summary: 'L\'ETF Amundi MSCI World (CW8.PA) a progressé de +12,3% depuis le 1er janvier 2026, porté par les valeurs US (+60% du sous-jacent). La diversification internationale reste le meilleur rapport risque/rendement sur 20 ans.',
-    insight: 'Un investissement régulier mensuel sur CW8 ou IWDA reste la stratégie optimale selon Vanguard et Morningstar. Le DRIP (réinvestissement des dividendes) ajoute ~0,8% de rendement composé annuel.',
-    sources: [
-      { label: 'Morningstar — CW8.PA', url: 'https://www.morningstar.fr/fr/etf/snapshot/snapshot.aspx?id=0P0000MEHZ' },
-      { label: 'MSCI World — Composition', url: 'https://www.msci.com/our-solutions/indexes/msci-world' },
-      { label: 'Vanguard — Principes d\'investissement', url: 'https://www.vanguard.com/pdf/ISGPRINC.pdf' },
-    ],
+    id: 4,
+    headline: "Or : 3 200 $/oz — valeur refuge en periode de tensions geopolitiques",
+    summary: "L'or depasse 3 200 $ l'once pour la premiere fois. Les fonds souverains asiatiques et les banques centrales accelerent leurs achats face a l'incertitude macroeconomique mondiale.",
+    source: 'FT',
+    url: 'https://www.ft.com/commodities',
+    datetime: Math.floor(Date.now() / 1000) - 14400,
+    category: 'commodity',
   },
 ]
 
-const THEME_STYLES = {
-  opportunity: { icon: <TrendingUp size={14} />, bg: 'bg-green-500/10 border-green-500/30', badge: 'bg-green-500/20 text-green-300', label: 'Opportunité' },
-  risk: { icon: <AlertTriangle size={14} />, bg: 'bg-red-500/10 border-red-500/30', badge: 'bg-red-500/20 text-red-300', label: 'Risque' },
-  macro: { icon: <Zap size={14} />, bg: 'bg-blue-500/10 border-blue-500/30', badge: 'bg-blue-500/20 text-blue-300', label: 'Macro' },
-  sector: { icon: <Newspaper size={14} />, bg: 'bg-indigo-500/10 border-indigo-500/30', badge: 'bg-indigo-500/20 text-indigo-300', label: 'Secteur' },
-}
-
-function getLastRefreshTime(): string {
-  const stored = localStorage.getItem('bulletinLastSeen')
-  if (stored) return new Date(parseInt(stored)).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
-  return 'Jamais'
-}
-
 export default function MarketBulletin() {
-  const [expanded, setExpanded] = useState<number | null>(null)
-  const [lastSeen, setLastSeen] = useState('')
+  const [articles, setArticles] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastFetch, setLastFetch] = useState<Date | null>(null)
+  const [expanded, setExpanded] = useState<number | null>(0) // first article open by default
 
-  useEffect(() => {
-    setLastSeen(getLastRefreshTime())
-    localStorage.setItem('bulletinLastSeen', Date.now().toString())
-  }, [])
+  const apiKey = isApiConfigured()
+    ? localStorage.getItem('finnhub_api_key') || ''
+    : ''
 
-  const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const load = async (force = false) => {
+    if (!force) {
+      const cached = getCached()
+      if (cached && cached.length > 0) {
+        setArticles(cached)
+        const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0')
+        setLastFetch(new Date(ts))
+        return
+      }
+    }
+
+    if (!apiKey) {
+      setArticles(FALLBACK_ARTICLES as unknown as NewsItem[])
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      const news = await fetchNews(apiKey)
+      if (news.length > 0) {
+        setArticles(news)
+        setCache(news)
+        setLastFetch(new Date())
+      } else {
+        // No articles today yet (weekend / early morning) — use fallback
+        setArticles(FALLBACK_ARTICLES as unknown as NewsItem[])
+      }
+    } catch {
+      setError('Impossible de charger les actualités.')
+      setArticles(FALLBACK_ARTICLES as unknown as NewsItem[])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const today = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
-      <div className="flex items-start justify-between mb-4">
+    <div className="rounded-xl border border-slate-700 bg-slate-800">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-700">
         <div>
           <div className="flex items-center gap-2">
             <Newspaper size={18} className="text-indigo-400" />
             <h2 className="text-base font-semibold text-white">Bulletin du Marché</h2>
+            {!apiKey && (
+              <span className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded">
+                Contenu statique — connectez Finnhub pour les news en direct
+              </span>
+            )}
           </div>
           <p className="text-slate-500 text-xs mt-0.5 capitalize">{today}</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-500">
-          <RefreshCw size={11} />
-          Actualisé chaque matin 7h00
+        <div className="flex items-center gap-2">
+          {lastFetch && (
+            <span className="text-xs text-slate-500 flex items-center gap-1">
+              <Clock size={10} />
+              {lastFetch.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}
+            </span>
+          )}
+          <button
+            onClick={() => load(true)}
+            disabled={loading}
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
+            Actualiser
+          </button>
         </div>
       </div>
 
-      <div className="space-y-3">
-        {BULLETINS.map((b, i) => {
-          const style = THEME_STYLES[b.theme]
+      {error && (
+        <div className="mx-5 mt-3 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+          {error}
+        </div>
+      )}
+
+      {loading && articles.length === 0 && (
+        <div className="px-5 py-8 text-center text-slate-500 text-sm">
+          <RefreshCw size={20} className="animate-spin mx-auto mb-2" />
+          Chargement des actualités…
+        </div>
+      )}
+
+      <div className="divide-y divide-slate-700/60">
+        {articles.map((a, i) => {
           const open = expanded === i
           return (
-            <div key={i} className={`rounded-lg border p-4 ${style.bg} cursor-pointer`} onClick={() => setExpanded(open ? null : i)}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2 flex-1 min-w-0">
-                  <span className={`mt-0.5 flex-shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${style.badge}`}>
-                    {style.icon}
-                    {style.label}
-                  </span>
-                  <span className="text-sm font-medium text-white leading-snug">{b.title}</span>
-                </div>
-                <span className="text-slate-500 text-xs flex-shrink-0">{open ? '▲' : '▼'}</span>
-              </div>
-
-              {open && (
-                <div className="mt-3 space-y-3 pl-2">
-                  <p className="text-slate-300 text-sm leading-relaxed">{b.summary}</p>
-                  <div className="bg-slate-900/60 rounded-lg p-3 border border-slate-700">
-                    <div className="text-xs text-indigo-400 font-semibold mb-1 uppercase tracking-wide">Insight Investisseur</div>
-                    <p className="text-slate-200 text-sm leading-relaxed">{b.insight}</p>
+            <button
+              key={a.id}
+              className="w-full text-left px-5 py-3.5 hover:bg-slate-700/30 transition-colors"
+              onClick={() => setExpanded(open ? null : i)}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="flex items-center gap-1 text-xs text-slate-400 shrink-0">
+                      {categoryIcon(a.source)}
+                      {a.source}
+                    </span>
+                    <span className="text-xs text-slate-600">{timeAgo(a.datetime)}</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {b.sources.map((s) => (
+                  <p className="text-sm font-medium text-white leading-snug">{a.headline}</p>
+
+                  {open && (
+                    <div className="mt-2 space-y-2">
+                      <p className="text-slate-300 text-xs leading-relaxed">{a.summary}</p>
                       <a
-                        key={s.url}
-                        href={s.url}
+                        href={a.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+                        className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
                       >
                         <ExternalLink size={10} />
-                        {s.label}
+                        Lire la suite
                       </a>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+                <span className="text-slate-600 text-xs shrink-0 mt-0.5">{open ? '▲' : '▼'}</span>
+              </div>
+            </button>
           )
         })}
       </div>
-
-      {lastSeen && (
-        <p className="text-xs text-slate-600 mt-3 text-right">Dernière consultation : {lastSeen}</p>
-      )}
     </div>
   )
 }

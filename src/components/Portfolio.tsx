@@ -130,7 +130,7 @@ export default function Portfolio() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Mon Portfolio</h1>
-          <p className="text-slate-400 text-sm mt-1">Gérez vos positions boursières</p>
+          <p className="text-slate-400 text-sm mt-1">Ajoutez vos titres via la recherche (actions, ETF, PEA), suivez prix d'achat, valeur actuelle et P&L en euros. Cliquez « Actualiser » pour mettre à jour les cours via Finnhub.</p>
         </div>
         <div className="flex items-center gap-3">
           {refreshMsg && <span className="text-xs text-slate-400">{refreshMsg}</span>}

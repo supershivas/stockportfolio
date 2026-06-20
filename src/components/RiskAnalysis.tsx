@@ -100,7 +100,7 @@ export default function RiskAnalysis() {
     { status: 'good', text: 'Bonne diversification géographique avec LVMH (Europe) et les ETF mondiaux.' },
     { status: 'good', text: "Présence d'ETF (CW8, PE500) qui réduisent le risque idiosyncratique." },
     { status: 'warn', text: "Absence d'obligations ou d'actifs défensifs. Le portefeuille est 100% actions." },
-    { status: 'good', text: 'Ratio de Sharpe > 1 indique un excellent rendement ajusté au risque historique.' },
+    { status: 'good', text: 'Ratio de Sharpe &gt; 1 indique un excellent rendement ajusté au risque historique.' },
   ]
 
   const fmt = (n: number) =>
@@ -111,7 +111,7 @@ export default function RiskAnalysis() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Analyse de Risque</h1>
-          <p className="text-slate-400 text-sm mt-1">Métriques de risque et diversification du portefeuille</p>
+          <p className="text-slate-400 text-sm mt-1">Beta, volatilité, Sharpe et drawdown mesurent le risque de votre portefeuille. Un Beta &gt; 1 signifie que vous amplifiez les mouvements du marché. La matrice de corrélation montre si vos titres évoluent ensemble (risque de concentration).</p>
         </div>
         <button
           onClick={refresh}

@@ -21,7 +21,7 @@ export default function Indicators() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-white">Indicateurs de Marché</h1>
-          <p className="text-slate-400 text-sm mt-1">Suivi des indicateurs macroéconomiques clés</p>
+          <p className="text-slate-400 text-sm mt-1">Le contexte macro influence directement votre portefeuille. VIX élevé = stress de marché, taux Fed en hausse = pression sur les actions growth, or en hausse = signal défensif. Connectez Finnhub pour les données en direct.</p>
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (

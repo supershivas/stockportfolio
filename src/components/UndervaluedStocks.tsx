@@ -313,7 +313,7 @@ export default function UndervaluedStocks() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">Valeurs Sous-Évaluées</h1>
-          <p className="text-slate-400 text-sm">Analyse fondamentale — 20 actions US & européennes</p>
+          <p className="text-slate-400 text-sm">Screening de 20 valeurs sur la base de critères fondamentaux : P/E, ROE, marges, dette. Un score A indique une action potentiellement sous-évaluée selon les modèles Graham et DCF. Ce n'est pas un conseil en investissement.</p>
         </div>
         <button
           onClick={refreshLive}

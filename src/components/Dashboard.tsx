@@ -105,8 +105,14 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-slate-400 text-sm mt-1">Vue d'ensemble de votre portefeuille</p>
+        <p className="text-slate-400 text-sm mt-1">
+          Vue d'ensemble de votre portefeuille en temps réel, actualités du jour et indices mondiaux.
+          Utilisez la barre latérale pour naviguer entre les sections.
+        </p>
       </div>
+
+      {/* Bulletin du marché EN PREMIER */}
+      <MarketBulletin />
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -244,7 +250,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-      <MarketBulletin />
       <Sources sources={[
         { label: 'Yahoo Finance', url: 'https://finance.yahoo.com/', description: 'Cours boursiers et données de marché' },
         { label: 'S&P 500 — Macrotrends', url: 'https://www.macrotrends.net/2324/sp-500-historical-chart-data', description: 'Historique S&P 500' },

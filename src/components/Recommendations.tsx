@@ -38,7 +38,7 @@ export default function Recommendations() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Recommandations</h1>
-        <p className="text-slate-400 text-sm mt-1">Allocations suggérées par les grandes maisons d'investissement</p>
+        <p className="text-slate-400 text-sm mt-1">Vanguard, BlackRock, Fidelity, JPMorgan, Goldman Sachs et Morgan Stanley publient chaque année leurs hypothèses de marché. Comparez leurs allocations recommandées et sélectionnez celle qui correspond à votre profil.</p>
       </div>
 
       {/* House selector */}

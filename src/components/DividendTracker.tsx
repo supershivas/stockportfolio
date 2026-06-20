@@ -136,7 +136,7 @@ export default function DividendTracker() {
         <div>
           <h1 className="text-2xl font-bold text-white">Dividende Tracker</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Suivi des dividendes — actualisation automatique chaque matin à 7h00 (Bruxelles)
+            Suivez vos revenus passifs : dividendes annuels, rendement live, prochaines ex-dates et calendrier mensuel. Les ex-dates sont critiques : vous devez détenir l'action AVANT cette date pour percevoir le dividende.
           </p>
         </div>
         <button

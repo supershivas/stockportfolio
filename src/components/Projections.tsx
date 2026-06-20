@@ -61,7 +61,7 @@ export default function Projections() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Projections</h1>
-        <p className="text-slate-400 text-sm mt-1">Simulez la croissance de votre portefeuille</p>
+        <p className="text-slate-400 text-sm mt-1">Entrez une valeur de départ, un apport mensuel et un horizon de 1 à 30 ans. Trois scénarios (4%/7%/10%/an) s'affichent simultanément, avec option correction inflation.</p>
       </div>
 
       {/* Controls */}
