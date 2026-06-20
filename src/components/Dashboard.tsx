@@ -257,35 +257,47 @@ export default function Dashboard() {
             <div className="space-y-1">
               {top5.map((p) => {
                 const val = toEur(p.quantity * p.currentPrice, p.currency)
-                const pct = (val / (staticValueEur || 1)) * 100
                 const pnl = (p.currentPrice - p.purchasePrice) / p.purchasePrice * 100
                 return (
-                  <div key={p.id} className="py-2.5 border-b border-slate-700/60 last:border-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-white text-sm leading-none">{p.ticker}</div>
-                          <div className="text-slate-500 text-xs mt-0.5">{p.name}</div>
-                        </div>
+                  <div key={p.id} className="py-2 border-b border-slate-700/60 last:border-0">
+                    <div className="flex items-center gap-2">
+                      {/* Avatar */}
+                      <div className="w-7 h-7 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-indigo-400">{p.ticker.slice(0, 2)}</span>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-white text-sm">{fmt(val)}</div>
-                        <div className={`text-xs ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
+                      {/* Name + sparkline */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-white text-sm leading-none">{p.ticker}</span>
+                          <span className="font-semibold text-white text-sm">{fmt(val)}</span>
                         </div>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <span className="text-slate-500 text-xs truncate">{p.name}</span>
+                          <span className={`text-xs shrink-0 ml-2 ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
+                          </span>
+                        </div>
+                        {/* Sparkline from price history */}
+                        {(() => {
+                          const hist = getHistory(p.ticker)
+                          if (hist.length < 2) return (
+                            <div className="h-8 flex items-center">
+                              <div className="h-px w-full bg-slate-700" />
+                            </div>
+                          )
+                          const sparkColor = hist[hist.length - 1].price >= hist[0].price ? '#22c55e' : '#f87171'
+                          const sparkData = hist.map((pt) => ({ v: pt.price * p.quantity }))
+                          return (
+                            <ResponsiveContainer width="100%" height={32}>
+                              <LineChart data={sparkData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+                                <YAxis domain={['dataMin', 'dataMax']} hide />
+                                <Line type="monotone" dataKey="v" stroke={sparkColor} strokeWidth={1.5} dot={false} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )
+                        })()}
                       </div>
                     </div>
-                    {/* Weight bar */}
-                    <div className="h-1 rounded-full bg-slate-700 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-indigo-500"
-                        style={{ width: `${Math.min(pct, 100).toFixed(1)}%` }}
-                      />
-                    </div>
-                    <div className="text-right text-xs text-slate-600 mt-0.5">{pct.toFixed(1)}%</div>
                   </div>
                 )
               })}
