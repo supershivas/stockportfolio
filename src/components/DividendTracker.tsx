@@ -233,7 +233,7 @@ export default function DividendTracker() {
                 const days = daysUntilExDate(d.exDate)
                 const isInPortfolio = portfolioTickers.has(d.ticker)
                 return (
-                  <tr key={d.ticker} className={`border-b border-slate-700 hover:bg-slate-700/50 transition-colors ${isInPortfolio ? 'bg-indigo-900/10' : ''}`}>
+                  <tr key={d.ticker} className={`border-b border-slate-700 hover:bg-slate-700/50 transition-colors`} style={isInPortfolio ? { background: 'var(--sidebar-selected)' } : {}}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded bg-accent/20 border border-accent/30 flex items-center justify-center">
@@ -309,7 +309,7 @@ export default function DividendTracker() {
                 }, 0)
               const isCurrentMonth = i === new Date().getMonth()
               return (
-                <div key={month} className={`rounded-lg p-3 border ${isCurrentMonth ? 'border-accent/50 bg-indigo-900/20' : 'border-slate-700 bg-slate-900/40'}`}>
+                <div key={month} className="rounded-lg p-3" style={{ border: isCurrentMonth ? '1px solid rgba(192,57,43,0.4)' : '1px solid var(--card-border)', background: isCurrentMonth ? 'rgba(192,57,43,0.08)' : 'var(--card-bg-2)' }}>
                   <div className="text-xs text-slate-400 font-medium mb-1">{month}</div>
                   <div className={`text-sm font-bold ${monthIncome > 0 ? 'text-green-400' : 'text-slate-600'}`}>
                     {monthIncome > 0 ? fmt(monthIncome) : '—'}

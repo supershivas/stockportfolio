@@ -387,7 +387,7 @@ export default function Portfolio() {
                       </td>
                     </tr>
                     {isExpanded && (
-                      <tr key={`${p.id}-detail`} className="border-b border-slate-700 bg-slate-900/50">
+                      <tr key={`${p.id}-detail`} className="border-b" style={{ background: "var(--card-bg-2)", borderColor: "var(--card-border)" }}>
                         <td colSpan={11} className="px-6 py-4">
                           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                             Historique du cours — {p.ticker}
@@ -407,7 +407,7 @@ export default function Portfolio() {
               })}
             </tbody>
             <tfoot>
-              <tr className="bg-slate-900/60 border-t-2 border-slate-600">
+              <tr style={{ background: "var(--card-bg-2)", borderTop: "2px solid var(--card-border)" }}>
                 <td colSpan={7} className="px-4 py-3 font-semibold text-slate-300">TOTAL</td>
                 <td className="px-4 py-3 font-bold text-white">{fmt(totalValue)}</td>
                 <td className={`px-4 py-3 font-bold ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>

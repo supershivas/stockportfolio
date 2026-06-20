@@ -70,11 +70,16 @@ code, kbd, .mono {
 
 /* ── Tailwind slate overrides for light mode ── */
 html.light .bg-slate-950 { background-color: var(--content-bg) !important; }
-html.light .bg-slate-900 { background-color: #F0F0F5 !important; }
+html.light .bg-slate-900 { background-color: #EBEBF0 !important; }
 html.light .bg-slate-800 { background-color: #FFFFFF !important; }
 html.light .bg-slate-700 { background-color: #F0F0F5 !important; }
 html.light .bg-slate-700\/50 { background-color: rgba(240,240,245,0.6) !important; }
 html.light .bg-black\/60   { background-color: rgba(0,0,0,0.4) !important; }
+
+/* bg with opacity variants */
+html.light [class*="bg-slate-900\/"] { background-color: #EBEBF0 !important; }
+html.light [class*="bg-slate-700\/"] { background-color: #F0F0F5 !important; }
+html.light [class*="bg-slate-800\/"] { background-color: rgba(255,255,255,0.8) !important; }
 
 html.light .border-slate-700 { border-color: rgba(0,0,0,0.1) !important; }
 html.light .border-slate-600 { border-color: rgba(0,0,0,0.14) !important; }
