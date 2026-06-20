@@ -35,9 +35,12 @@ function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
 }
 
-function PriceHistoryChart({ ticker, purchasePrice, currency, version }: { ticker: string; purchasePrice: number; currency: string; version: number }) {
+function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version }: { ticker: string; quantity: number; purchasePrice: number; currency: string; version: number }) {
   const history: PricePoint[] = getHistory(ticker)
-  void version // consumed only to trigger re-render
+  void version
+
+  const fmtVal = (n: number) =>
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency === 'USD' ? 'USD' : 'EUR', maximumFractionDigits: 0 }).format(n)
 
   if (history.length === 0) {
     return (
@@ -48,32 +51,32 @@ function PriceHistoryChart({ ticker, purchasePrice, currency, version }: { ticke
   }
 
   if (history.length === 1) {
-    const p = history[0]
-    const currencySymbol = currency === 'USD' ? '$' : '€'
+    const pt = history[0]
     return (
       <p className="text-xs text-slate-400 py-2">
-        1 point enregistré le {formatDate(p.ts)} : <strong className="text-white">{p.price.toFixed(2)}{currencySymbol}</strong>.
+        1 point enregistré le {formatDate(pt.ts)} : <strong className="text-white">{fmtVal(pt.price * quantity)}</strong>.
         La courbe apparaîtra dès la prochaine mise à jour.
       </p>
     )
   }
 
-  const currencySymbol = currency === 'USD' ? '$' : '€'
-  const data = history.map((p) => ({ date: formatDate(p.ts), price: p.price }))
-  const prices = history.map((p) => p.price)
-  const minP = Math.min(...prices)
-  const maxP = Math.max(...prices)
-  const first = prices[0]
-  const last = prices[prices.length - 1]
+  // Chart shows total position value (price × current quantity)
+  const costBasis = purchasePrice * quantity
+  const data = history.map((pt) => ({ date: formatDate(pt.ts), value: Math.round(pt.price * quantity) }))
+  const values = data.map((d) => d.value)
+  const minV = Math.min(...values)
+  const maxV = Math.max(...values)
+  const first = values[0]
+  const last = values[values.length - 1]
   const rising = last >= first
   const color = rising ? '#22c55e' : '#f87171'
 
   return (
     <div className="mt-3">
-      <div className="flex items-center gap-4 mb-2 text-xs text-slate-400">
-        <span>Min : <strong className="text-slate-200">{minP.toFixed(2)}{currencySymbol}</strong></span>
-        <span>Max : <strong className="text-slate-200">{maxP.toFixed(2)}{currencySymbol}</strong></span>
-        <span>Prix d'achat : <strong className="text-slate-200">{purchasePrice.toFixed(2)}{currencySymbol}</strong></span>
+      <div className="flex items-center gap-4 mb-2 text-xs text-slate-400 flex-wrap">
+        <span>Min : <strong className="text-slate-200">{fmtVal(minV)}</strong></span>
+        <span>Max : <strong className="text-slate-200">{fmtVal(maxV)}</strong></span>
+        <span>Coût d'achat : <strong className="text-slate-200">{fmtVal(costBasis)}</strong></span>
         <span className={rising ? 'text-green-400' : 'text-red-400'}>
           {rising ? '▲' : '▼'} {Math.abs(((last - first) / first) * 100).toFixed(2)}% sur la période
         </span>
@@ -87,16 +90,16 @@ function PriceHistoryChart({ ticker, purchasePrice, currency, version }: { ticke
             </linearGradient>
           </defs>
           <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
+          <YAxis domain={['dataMin - 100', 'dataMax + 100']} hide />
           <Tooltip
             contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#e2e8f0' }}
             itemStyle={{ color: '#e2e8f0' }}
-            formatter={(v: number) => [`${v.toFixed(2)}${currencySymbol}`, 'Prix']}
+            formatter={(v: number) => [fmtVal(v), 'Valeur']}
           />
-          <ReferenceLine y={purchasePrice} stroke="#6366f1" strokeDasharray="4 3" strokeWidth={1} />
+          <ReferenceLine y={costBasis} stroke="#6366f1" strokeDasharray="4 3" strokeWidth={1} />
           <Area
             type="monotone"
-            dataKey="price"
+            dataKey="value"
             stroke={color}
             strokeWidth={2}
             fill={`url(#grad-${ticker})`}
@@ -386,6 +389,7 @@ export default function Portfolio() {
                           </p>
                           <PriceHistoryChart
                             ticker={p.ticker}
+                            quantity={p.quantity}
                             purchasePrice={p.purchasePrice}
                             currency={p.currency}
                             version={historyVersion}
