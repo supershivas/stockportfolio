@@ -38,7 +38,7 @@ export default function Recommendations() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Recommandations</h1>
-        <p className="text-slate-400 text-sm mt-1">Vanguard, BlackRock, Fidelity, JPMorgan, Goldman Sachs et Morgan Stanley publient chaque année leurs hypothèses de marché. Comparez leurs allocations recommandées et sélectionnez celle qui correspond à votre profil.</p>
+        <p className="text-slate-400 text-sm mt-1">Perspectives mi-2026 de Vanguard, BlackRock, Fidelity, JPMorgan, Goldman Sachs et Morgan Stanley. Comparez leurs allocations et convictions pour calibrer votre portefeuille.</p>
       </div>
 
       {/* House selector */}
@@ -65,7 +65,10 @@ export default function Recommendations() {
             <span className="text-indigo-400 font-bold text-sm">{rec.house.slice(0, 2)}</span>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">{rec.house} — Perspectives 2025</h2>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-lg font-semibold text-white">{rec.house} — Perspectives Mi-2026</h2>
+              <span className="text-xs bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded">Juin 2026</span>
+            </div>
             <p className="text-slate-300 text-sm mt-2 leading-relaxed">{rec.outlook}</p>
           </div>
         </div>
