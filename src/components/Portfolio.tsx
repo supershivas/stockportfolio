@@ -144,6 +144,10 @@ export default function Portfolio() {
     if (!modal) return
     if (modal.type === 'add') {
       addPosition(modal.data)
+      if (modal.data.currentPrice > 0) {
+        appendPrice(modal.data.ticker, modal.data.currentPrice)
+        setHistoryVersion((v) => v + 1)
+      }
     } else if (modal.id) {
       const prev = positions.find((p) => p.id === modal.id)
       updatePosition(modal.id, modal.data)
