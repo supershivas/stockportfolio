@@ -78,7 +78,7 @@ async function fetchNews(apiKey: string): Promise<NewsItem[]> {
       return true
     })
     .sort((a, b) => b.datetime - a.datetime) // most recent first
-    .slice(0, 10)
+    .slice(0, 5)
 }
 
 function timeAgo(ts: number): string {
