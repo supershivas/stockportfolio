@@ -33,26 +33,52 @@ function setCache(items: NewsItem[]) {
   } catch { /* quota */ }
 }
 
+// Financial relevance keywords — headline or summary must contain at least one
+const FINANCIAL_KEYWORDS = [
+  'stock', 'market', 'share', 'equity', 'nasdaq', 's&p', 'dow', 'cac', 'dax',
+  'fed', 'federal reserve', 'ecb', 'interest rate', 'inflation', 'gdp', 'earnings',
+  'revenue', 'profit', 'ipo', 'dividend', 'bond', 'yield', 'treasury',
+  'oil', 'gold', 'crypto', 'bitcoin', 'etf', 'fund', 'hedge',
+  'acquisition', 'merger', 'buyback', 'outlook', 'forecast', 'guidance',
+  'quarter', 'fiscal', 'analyst', 'upgrade', 'downgrade', 'rating',
+  'portfolio', 'invest', 'trade', 'rally', 'selloff', 'volatil',
+  'bourse', 'action', 'taux', 'banque', 'obligation', 'rendement',
+  // major companies likely in portfolio
+  'apple', 'microsoft', 'nvidia', 'amazon', 'alphabet', 'meta', 'tesla',
+  'lvmh', 'airbus', 'totalenergies', 'sanofi', 'bnp', 'asml',
+]
+
+function isFinanciallyRelevant(item: NewsItem): boolean {
+  const text = (item.headline + ' ' + (item.summary || '')).toLowerCase()
+  return FINANCIAL_KEYWORDS.some((kw) => text.includes(kw))
+}
+
 async function fetchNews(apiKey: string): Promise<NewsItem[]> {
-  const res = await fetch(
-    `https://finnhub.io/api/v1/news?category=general&minId=0&token=${apiKey}`
-  )
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data: NewsItem[] = await res.json()
-  // Filter to today only, deduplicate by headline, take top 8
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-  const todayTs = todayStart.getTime() / 1000
+  // Fetch both general and merger categories for richer financial coverage
+  const [generalRes, mergerRes] = await Promise.all([
+    fetch(`https://finnhub.io/api/v1/news?category=general&token=${apiKey}`),
+    fetch(`https://finnhub.io/api/v1/news?category=merger&token=${apiKey}`),
+  ])
+
+  const general: NewsItem[] = generalRes.ok ? await generalRes.json() : []
+  const merger: NewsItem[] = mergerRes.ok ? await mergerRes.json() : []
+  const combined = [...general, ...merger]
+
+  // Filter: last 48h (not just today — weekends/early morning can be sparse)
+  const cutoff = Date.now() / 1000 - 48 * 3600
   const seen = new Set<string>()
-  return data
-    .filter((n) => n.datetime >= todayTs && n.headline && n.summary)
+
+  return combined
+    .filter((n) => n.datetime >= cutoff && n.headline && n.summary)
+    .filter((n) => isFinanciallyRelevant(n))
     .filter((n) => {
-      const key = n.headline.slice(0, 50)
+      const key = n.headline.slice(0, 60).toLowerCase()
       if (seen.has(key)) return false
       seen.add(key)
       return true
     })
-    .slice(0, 8)
+    .sort((a, b) => b.datetime - a.datetime) // most recent first
+    .slice(0, 10)
 }
 
 function timeAgo(ts: number): string {
