@@ -1,10 +1,21 @@
 import { useState, useCallback, useEffect } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
-import { Plus, Pencil, Trash2, X, Check, RefreshCw } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle } from 'lucide-react'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from '../data/stockDatabase'
 import { fetchMultipleQuotes, fetchQuote, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
+
+const LAST_UPDATE_KEY = 'portfolio_last_price_update'
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+function getLastUpdateTs(): number {
+  return parseInt(localStorage.getItem(LAST_UPDATE_KEY) || '0')
+}
+
+function markUpdated() {
+  localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString())
+}
 
 const EMPTY: Omit<Position, 'id'> = {
   ticker: '',
@@ -25,9 +36,12 @@ export default function Portfolio() {
   const [refreshMsg, setRefreshMsg] = useState('')
   const [eurUsd, setEurUsd] = useState(1.08)
   const [fetchingLivePrice, setFetchingLivePrice] = useState(false)
+  const [showUpdateReminder, setShowUpdateReminder] = useState(false)
 
   useEffect(() => {
     if (isApiConfigured()) fetchEurUsdRate().then(setEurUsd)
+    const ts = getLastUpdateTs()
+    if (ts === 0 || Date.now() - ts > WEEK_MS) setShowUpdateReminder(true)
   }, [])
 
   const toEur = (amount: number, currency: string) =>
@@ -94,6 +108,10 @@ export default function Portfolio() {
       if (pos) { updatePosition(pos.id, { currentPrice: q.price }); updated++ }
     })
     setRefreshing(false)
+    if (updated > 0) {
+      markUpdated()
+      setShowUpdateReminder(false)
+    }
     setRefreshMsg(updated > 0 ? `${updated} cours mis à jour ✓` : 'Aucune donnée disponible.')
     setTimeout(() => setRefreshMsg(''), 4000)
   }
@@ -152,6 +170,24 @@ export default function Portfolio() {
           </button>
         </div>
       </div>
+
+      {/* Weekly update reminder */}
+      {showUpdateReminder && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
+          <AlertCircle size={16} className="shrink-0 text-yellow-400" />
+          <span className="flex-1">
+            Il y a plus d'une semaine que vous n'avez pas mis à jour vos cours.
+            Cliquez <strong>Actualiser</strong> pour récupérer les prix en temps réel via Finnhub, ou mettez à jour manuellement chaque position.
+          </span>
+          <button
+            onClick={() => { markUpdated(); setShowUpdateReminder(false) }}
+            className="text-yellow-400 hover:text-yellow-200 shrink-0"
+            title="Fermer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Table */}
       <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
