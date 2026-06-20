@@ -113,6 +113,29 @@ export default function ApiSettings({ onClose }: Props) {
         <p className="text-xs text-slate-500 mt-4">
           La clé est stockée uniquement dans votre navigateur (localStorage). Elle n'est jamais envoyée à nos serveurs.
         </p>
+
+        <div className="mt-5 pt-4 border-t border-slate-700">
+          <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Applications</p>
+          <div className="flex gap-2">
+            {[
+              { name: 'Idée', url: 'https://idee-neon.vercel.app/', favicon: 'https://idee-neon.vercel.app/favicon.ico' },
+              { name: 'Source', url: 'https://source-sigma-kohl.vercel.app/app', favicon: 'https://source-sigma-kohl.vercel.app/favicon.ico' },
+              { name: 'AutoCompare', url: 'https://supershivas.github.io/projetV/', favicon: 'https://supershivas.github.io/projetV/favicon.ico' },
+            ].map(app => (
+              <a
+                key={app.name}
+                href={app.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex flex-col items-center gap-1.5 bg-slate-900/60 hover:bg-slate-900 rounded-xl px-3 py-2.5 transition-colors"
+                title={app.name}
+              >
+                <img src={app.favicon} alt="" width={20} height={20} className="rounded-sm" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <span className="text-[10px] text-slate-500">{app.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
