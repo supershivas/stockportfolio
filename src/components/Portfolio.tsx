@@ -52,54 +52,59 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
 
   if (history.length === 1) {
     const pt = history[0]
+    const gain = Math.round((pt.price - purchasePrice) * quantity)
     return (
       <p className="text-xs text-slate-400 py-2">
-        1 point enregistré le {formatDate(pt.ts)} : <strong className="text-white">{fmtVal(pt.price * quantity)}</strong>.
+        1 point enregistré le {formatDate(pt.ts)} — gain net : <strong className={gain >= 0 ? 'text-green-400' : 'text-red-400'}>{gain >= 0 ? '+' : ''}{fmtVal(gain)}</strong>.
         La courbe apparaîtra dès la prochaine mise à jour.
       </p>
     )
   }
 
-  // Chart shows total position value (price × current quantity)
-  const costBasis = purchasePrice * quantity
-  const data = history.map((pt) => ({ date: formatDate(pt.ts), value: Math.round(pt.price * quantity) }))
-  const values = data.map((d) => d.value)
-  const minV = Math.min(...values)
-  const maxV = Math.max(...values)
-  const first = values[0]
-  const last = values[values.length - 1]
-  const rising = last >= first
-  const color = rising ? '#22c55e' : '#f87171'
+  // Chart shows net gain = (price - purchasePrice) × quantity
+  const data = history.map((pt) => ({
+    date: formatDate(pt.ts),
+    gain: Math.round((pt.price - purchasePrice) * quantity),
+  }))
+  const gains = data.map((d) => d.gain)
+  const minG = Math.min(...gains)
+  const maxG = Math.max(...gains)
+  const currentGain = gains[gains.length - 1]
+  const firstGain = gains[0]
+  const rising = currentGain >= firstGain
+  const positive = currentGain >= 0
+  const color = positive ? '#22c55e' : '#f87171'
+  const pct = ((history[history.length - 1].price - purchasePrice) / purchasePrice * 100)
 
   return (
     <div className="mt-3">
-      <div className="flex items-center gap-4 mb-2 text-xs text-slate-400 flex-wrap">
-        <span>Min : <strong className="text-slate-200">{fmtVal(minV)}</strong></span>
-        <span>Max : <strong className="text-slate-200">{fmtVal(maxV)}</strong></span>
-        <span>Coût d'achat : <strong className="text-slate-200">{fmtVal(costBasis)}</strong></span>
+      <div className="flex items-center gap-5 mb-2 text-xs text-slate-400 flex-wrap">
+        <span>Gain actuel : <strong className={positive ? 'text-green-400' : 'text-red-400'}>{currentGain >= 0 ? '+' : ''}{fmtVal(currentGain)} ({pct >= 0 ? '+' : ''}{pct.toFixed(2)}%)</strong></span>
+        <span>Max gain : <strong className="text-slate-200">{fmtVal(maxG)}</strong></span>
+        <span>Min gain : <strong className="text-slate-200">{fmtVal(minG)}</strong></span>
         <span className={rising ? 'text-green-400' : 'text-red-400'}>
-          {rising ? '▲' : '▼'} {Math.abs(((last - first) / first) * 100).toFixed(2)}% sur la période
+          {rising ? '▲' : '▼'} tendance sur la période
         </span>
       </div>
-      <ResponsiveContainer width="100%" height={120}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height={130}>
+        <AreaChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id={`grad-${ticker}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="5%" stopColor={color} stopOpacity={0.35} />
               <stop offset="95%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis domain={['dataMin - 100', 'dataMax + 100']} hide />
+          <YAxis domain={[Math.min(minG, 0) - Math.abs(minG) * 0.1, maxG + Math.abs(maxG) * 0.1]} hide />
           <Tooltip
             contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '11px', color: '#e2e8f0' }}
             itemStyle={{ color: '#e2e8f0' }}
-            formatter={(v: number) => [fmtVal(v), 'Valeur']}
+            formatter={(v: number) => [`${v >= 0 ? '+' : ''}${fmtVal(v)}`, 'Gain net']}
           />
-          <ReferenceLine y={costBasis} stroke="#6366f1" strokeDasharray="4 3" strokeWidth={1} />
+          <ReferenceLine y={0} stroke="#475569" strokeDasharray="4 3" strokeWidth={1} />
           <Area
             type="monotone"
-            dataKey="value"
+            dataKey="gain"
             stroke={color}
             strokeWidth={2}
             fill={`url(#grad-${ticker})`}
@@ -108,7 +113,7 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
           />
         </AreaChart>
       </ResponsiveContainer>
-      <p className="text-xs text-slate-600 mt-1">— Ligne pointillée = prix d'achat · {history.length} point{history.length > 1 ? 's' : ''} enregistré{history.length > 1 ? 's' : ''}</p>
+      <p className="text-xs text-slate-600 mt-1">— Ligne pointillée = seuil de rentabilité (0) · {history.length} point{history.length > 1 ? 's' : ''}</p>
     </div>
   )
 }

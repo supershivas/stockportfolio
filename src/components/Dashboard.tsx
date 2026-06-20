@@ -5,7 +5,7 @@ import Sources from './Sources'
 import MarketBulletin from './MarketBulletin'
 import {
   LineChart, Line, YAxis, XAxis, ResponsiveContainer, Tooltip,
-  AreaChart, Area,
+  AreaChart, Area, ReferenceLine,
 } from 'recharts'
 import { useLiveQuotes } from '../hooks/useLiveQuotes'
 import { INDEX_TICKERS, fetchEurUsdRate } from '../services/marketData'
@@ -277,7 +277,7 @@ export default function Dashboard() {
                             {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
                           </span>
                         </div>
-                        {/* Sparkline from price history */}
+                        {/* Sparkline — gain net (price − purchasePrice) × qty */}
                         {(() => {
                           const hist = getHistory(p.ticker)
                           if (hist.length < 2) return (
@@ -285,12 +285,17 @@ export default function Dashboard() {
                               <div className="h-px w-full bg-slate-700" />
                             </div>
                           )
-                          const sparkColor = hist[hist.length - 1].price >= hist[0].price ? '#22c55e' : '#f87171'
-                          const sparkData = hist.map((pt) => ({ v: pt.price * p.quantity }))
+                          const sparkData = hist.map((pt) => ({ v: (pt.price - p.purchasePrice) * p.quantity }))
+                          const lastGain = sparkData[sparkData.length - 1].v
+                          const sparkColor = lastGain >= 0 ? '#22c55e' : '#f87171'
+                          const minV = Math.min(...sparkData.map(d => d.v))
+                          const maxV = Math.max(...sparkData.map(d => d.v))
+                          const pad = Math.max(Math.abs(maxV - minV) * 0.1, 1)
                           return (
                             <ResponsiveContainer width="100%" height={32}>
                               <LineChart data={sparkData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
-                                <YAxis domain={['dataMin', 'dataMax']} hide />
+                                <YAxis domain={[minV - pad, maxV + pad]} hide />
+                                <ReferenceLine y={0} stroke="#475569" strokeDasharray="3 2" strokeWidth={1} />
                                 <Line type="monotone" dataKey="v" stroke={sparkColor} strokeWidth={1.5} dot={false} />
                               </LineChart>
                             </ResponsiveContainer>
