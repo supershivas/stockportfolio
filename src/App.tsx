@@ -220,7 +220,7 @@ export default function App() {
                         {active && <ChevronRight size={14} className="shrink-0" />}
                       </button>
                       {/* Tooltip */}
-                      <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover:block">
+                      <div className="nav-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover:block">
                         <div className="text-xs rounded-lg px-3 py-2 shadow-xl max-w-[220px] leading-relaxed whitespace-normal"
                           style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)', border: '1px solid var(--sidebar-border)' }}>
                           {item.tooltip}

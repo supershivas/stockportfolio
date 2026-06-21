@@ -68,6 +68,13 @@ code, kbd, .mono {
   font-family: var(--font-mono);
 }
 
+/* Tooltips only on devices with real hover (not touch screens) */
+@media (hover: none) {
+  .group:hover .nav-tooltip {
+    display: none !important;
+  }
+}
+
 /* ── Tailwind slate overrides for light mode ── */
 html.light .bg-slate-950 { background-color: var(--content-bg) !important; }
 html.light .bg-slate-900 { background-color: #EBEBF0 !important; }
