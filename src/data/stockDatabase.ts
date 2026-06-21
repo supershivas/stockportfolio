@@ -115,10 +115,10 @@ export const STOCK_DATABASE: StockSearchResult[] = [
 
 export function searchStocks(query: string, peaOnly = false): StockSearchResult[] {
   if (!query || query.length < 1) return []
-  const q = query.toLowerCase()
-  return STOCK_DATABASE.filter(
-    (s) =>
-      (s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)) &&
-      (!peaOnly || s.pea)
-  ).slice(0, 10)
+  const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean)
+  return STOCK_DATABASE.filter((s) => {
+    if (peaOnly && !s.pea) return false
+    const haystack = (s.ticker + ' ' + s.name + ' ' + s.sector).toLowerCase()
+    return words.every((w) => haystack.includes(w))
+  }).slice(0, 10)
 }

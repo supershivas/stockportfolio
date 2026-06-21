@@ -83,26 +83,29 @@ export default function StockSearchInput({ onSelect, placeholder = 'Rechercher p
   }
 
   const dropdown = open && results.length > 0 ? (
-    <div style={dropStyle} className="bg-slate-700 border border-slate-600 rounded-lg shadow-2xl overflow-hidden">
+    <div style={{ ...dropStyle, background: 'var(--card-bg)', border: '1px solid var(--card-border)' }} className="rounded-lg shadow-2xl overflow-hidden">
       {results.map((s, i) => (
         <button
           key={s.ticker}
           onMouseDown={() => select(s)}
-          className={`w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-slate-600 transition-colors ${i === cursor ? 'bg-slate-600' : ''}`}
+          className="w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors"
+          style={{ background: i === cursor ? 'var(--hover-bg)' : 'transparent' }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--hover-bg)'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i === cursor ? 'var(--hover-bg)' : 'transparent'}
         >
           <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${typeColors[s.type]}`}>{s.type}</span>
-          <span className="font-semibold text-white text-sm shrink-0 w-20">{s.ticker}</span>
-          <span className="text-slate-300 text-sm truncate flex-1">{s.name}</span>
-          <span className="text-slate-400 text-xs shrink-0">{s.country}</span>
+          <span className="font-semibold text-sm shrink-0 w-20" style={{ color: 'var(--text-primary)' }}>{s.ticker}</span>
+          <span className="text-sm truncate flex-1" style={{ color: 'var(--text-secondary)' }}>{s.name}</span>
+          <span className="text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>{s.country}</span>
           {s.pea && (
-            <span className="text-xs bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded font-medium shrink-0">PEA</span>
+            <span className="text-xs bg-green-500/20 text-green-500 px-1.5 py-0.5 rounded font-medium shrink-0">PEA</span>
           )}
         </button>
       ))}
     </div>
   ) : open && !loading && results.length === 0 && query.length > 0 ? (
-    <div style={dropStyle} className="bg-slate-700 border border-slate-600 rounded-lg px-4 py-3">
-      <p className="text-sm text-slate-400">Aucun résultat pour « {query} »{peaOnly ? ' (filtre PEA actif)' : ''}</p>
+    <div style={{ ...dropStyle, background: 'var(--card-bg)', border: '1px solid var(--card-border)' }} className="rounded-lg px-4 py-3">
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucun résultat pour « {query} »{peaOnly ? ' (filtre PEA actif)' : ''}</p>
     </div>
   ) : null
 
@@ -134,7 +137,8 @@ export default function StockSearchInput({ onSelect, placeholder = 'Rechercher p
           onFocus={() => { if (query) { updateDropPosition(); setOpen(true) } }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent transition-colors"
+          className="w-full rounded-lg pl-9 pr-9 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+          style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--text-primary)' }}
         />
       </div>
       {/* Portal-like fixed dropdown */}

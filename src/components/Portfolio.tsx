@@ -284,7 +284,7 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => { setModal({ type: 'add', data: { ...EMPTY } }); setAutoFilled(false) }}
-            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 bg-accent hover:bg-accent-hover px-4 py-2 rounded-lg text-sm font-medium transition-colors" style={{ color: "#ffffff" }}
           >
             <Plus size={16} />
             Ajouter
@@ -470,7 +470,8 @@ export default function Portfolio() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 py-2 rounded-lg bg-accent hover:bg-accent-hover text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                style={{ color: '#ffffff' }}
               >
                 <Check size={16} />
                 {modal.type === 'add' ? 'Ajouter' : 'Enregistrer'}
@@ -498,7 +499,8 @@ export default function Portfolio() {
               <button onClick={() => setDeleteId(null)} className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:text-white text-sm transition-colors">Annuler</button>
               <button
                 onClick={() => { removePosition(deleteId); setDeleteId(null) }}
-                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-sm font-medium transition-colors"
+                style={{ color: '#ffffff' }}
               >
                 Supprimer
               </button>
