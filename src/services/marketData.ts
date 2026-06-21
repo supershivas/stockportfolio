@@ -1,10 +1,10 @@
 // Finnhub free tier: 60 req/min = 1 req/s — https://finnhub.io
 const FINNHUB_BASE = 'https://finnhub.io/api/v1'
 
-// Yahoo Finance — free, no key, used as fallback for tickers not on Finnhub (e.g. Euronext ETFs)
+// Yahoo Finance — routed via /api/quote (Vercel serverless proxy) to avoid CORS
 async function fetchYahooQuote(ticker: string): Promise<QuoteResult | null> {
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`
+    const url = `/api/quote?ticker=${encodeURIComponent(ticker)}`
     const res = await fetch(url)
     if (!res.ok) return null
     const json = await res.json()
