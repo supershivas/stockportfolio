@@ -204,7 +204,7 @@ export default function App() {
                 {group.items.map((item) => {
                   const active = page === item.id
                   return (
-                    <div key={item.id} className="relative group">
+                    <div key={item.id} className="relative">
                       <button
                         onClick={() => { setPage(item.id); setSidebarOpen(false) }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-all"
@@ -212,15 +212,23 @@ export default function App() {
                           background: active ? 'var(--sidebar-selected)' : 'transparent',
                           color: active ? 'var(--sidebar-selected-fg)' : 'var(--sidebar-muted)',
                         }}
-                        onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' } }}
-                        onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' } }}
+                        onMouseEnter={e => {
+                          if (!active) { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }
+                          const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement
+                          if (tip) tip.style.display = 'block'
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }
+                          const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement
+                          if (tip) tip.style.display = 'none'
+                        }}
                       >
                         <span className="shrink-0">{item.icon}</span>
                         <span className="flex-1 text-left">{item.label}</span>
                         {active && <ChevronRight size={14} className="shrink-0" />}
                       </button>
-                      {/* Tooltip */}
-                      <div className="nav-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover:block">
+                      {/* Tooltip — shown via JS mouseenter/leave only, never on touch */}
+                      <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50" style={{ display: 'none' }}>
                         <div className="text-xs rounded-lg px-3 py-2 shadow-xl max-w-[220px] leading-relaxed whitespace-normal"
                           style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)', border: '1px solid var(--sidebar-border)' }}>
                           {item.tooltip}

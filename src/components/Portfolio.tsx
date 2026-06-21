@@ -156,6 +156,7 @@ export default function Portfolio() {
         appendPrice(modal.data.ticker, modal.data.currentPrice)
         setHistoryVersion((v) => v + 1)
       }
+      showToast(`✓ ${modal.data.ticker} ajouté au portefeuille`)
     } else if (modal.id) {
       const prev = positions.find((p) => p.id === modal.id)
       updatePosition(modal.id, modal.data)
@@ -165,7 +166,9 @@ export default function Portfolio() {
         setShowUpdateReminder(false)
         setHistoryVersion((v) => v + 1)
         const pts = getHistory(modal.data.ticker).length
-        showToast(`${modal.data.ticker} mis à jour · ${pts} point${pts > 1 ? 's' : ''} dans l'historique`)
+        showToast(`✓ ${modal.data.ticker} mis à jour · ${pts} point${pts > 1 ? 's' : ''} dans l'historique`)
+      } else {
+        showToast(`✓ ${modal.data.ticker} modifié`)
       }
     }
     setModal(null)
@@ -493,7 +496,12 @@ export default function Portfolio() {
             <div className="flex gap-3">
               <button onClick={() => setDeleteId(null)} className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:text-white text-sm transition-colors">Annuler</button>
               <button
-                onClick={() => { removePosition(deleteId); setDeleteId(null) }}
+                onClick={() => {
+                  const pos = positions.find(p => p.id === deleteId)
+                  removePosition(deleteId)
+                  setDeleteId(null)
+                  showToast(`✓ ${pos?.ticker ?? 'Position'} supprimée`)
+                }}
                 className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-sm font-medium transition-colors"
                 style={{ color: '#ffffff' }}
               >
