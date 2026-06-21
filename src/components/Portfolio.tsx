@@ -27,7 +27,7 @@ const EMPTY: Omit<Position, 'id'> = {
   quantity: 0,
   purchasePrice: 0,
   currentPrice: 0,
-  currency: 'USD',
+  currency: 'EUR',
   sector: '',
 }
 
@@ -243,7 +243,7 @@ export default function Portfolio() {
       {key === 'currency' ? (
         <select
           className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white"
-          value={(modal?.data[key] as string) || 'USD'}
+          value={(modal?.data[key] as string) || 'EUR'}
           onChange={(e) => setModal((m) => m ? { ...m, data: { ...m.data, [key]: e.target.value as 'USD' | 'EUR' } } : m)}
         >
           <option value="USD">USD</option>

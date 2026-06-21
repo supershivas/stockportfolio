@@ -90,6 +90,7 @@ export const STOCK_DATABASE: StockSearchResult[] = [
   { ticker: 'ENI.MI',  name: 'Eni SpA',              sector: 'Énergie',       currency: 'EUR', currentPrice: 14,   country: '🇮🇹', type: 'Action', pea: true },
   { ticker: 'ENEL.MI', name: 'Enel SpA',             sector: 'Utilities',     currency: 'EUR', currentPrice: 7,    country: '🇮🇹', type: 'Action', pea: true },
   // ETF PEA-éligibles (UCITS domiciliés UE) — source: Amundi, iShares, Vanguard prospectus
+  { ticker: 'WPEA.PA',  name: 'iShares MSCI World Swap PEA UCITS ETF', sector: 'ETF Monde',    currency: 'EUR', currentPrice: 6.85, country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'CW8.PA',   name: 'Amundi MSCI World UCITS ETF',           sector: 'ETF Monde',    currency: 'EUR', currentPrice: 450,  country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'PE500.PA', name: 'Amundi PEA S&P 500 UCITS ETF',          sector: 'ETF USA',      currency: 'EUR', currentPrice: 38,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'PANX.PA',  name: 'Amundi PEA NASDAQ-100 UCITS ETF',       sector: 'ETF Tech',     currency: 'EUR', currentPrice: 44,   country: '🇫🇷', type: 'ETF', pea: true },
