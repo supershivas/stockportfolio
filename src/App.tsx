@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield,
-  TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon,
+  TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud,
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import { isApiConfigured } from './services/marketData'
+import { getBackupId, restoreFromCloud } from './services/cloudBackup'
+import { usePortfolioStore } from './store/portfolioStore'
 import Dashboard from './components/Dashboard'
 import Portfolio from './components/Portfolio'
 import Projections from './components/Projections'
@@ -110,6 +112,10 @@ export default function App() {
   const [showApiSettings, setShowApiSettings] = useState(false)
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
+  const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
+  const positions = usePortfolioStore((s) => s.positions)
+  const setPositions = usePortfolioStore((s) => s.setPositions)
+  const restoredRef = useRef(false)
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light')
@@ -118,6 +124,33 @@ export default function App() {
 
   useEffect(() => {
     const interval = setInterval(() => setApiConfigured(isApiConfigured()), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Auto-restore on startup if no local positions but backup ID exists
+  useEffect(() => {
+    if (restoredRef.current) return
+    restoredRef.current = true
+    const backupId = getBackupId()
+    if (positions.length === 0 && backupId) {
+      setCloudStatus('syncing')
+      restoreFromCloud(backupId).then((restored) => {
+        if (restored && restored.length > 0) {
+          setPositions(restored)
+        }
+        setCloudStatus('ok')
+      })
+    } else if (getBackupId()) {
+      setCloudStatus('ok')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Update cloud status indicator when backup ID appears
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (getBackupId()) setCloudStatus('ok')
+    }, 2000)
     return () => clearInterval(interval)
   }, [])
 
@@ -215,6 +248,13 @@ export default function App() {
                 ? <Wifi size={14} className="text-green-400 shrink-0" />
                 : <WifiOff size={14} className="shrink-0" style={{ color: 'var(--sidebar-icon)' }} />}
               <span className="flex-1 text-left">{apiConfigured ? 'Temps réel actif' : 'Données simulées'}</span>
+              <span title={cloudStatus === 'ok' ? 'Sauvegarde cloud active' : cloudStatus === 'syncing' ? 'Synchronisation...' : 'Pas de sauvegarde'}>
+                <Cloud
+                  size={12}
+                  style={{ color: cloudStatus === 'syncing' ? '#60a5fa' : cloudStatus === 'ok' ? '#4ade80' : 'var(--sidebar-muted)' }}
+                  className={cloudStatus === 'syncing' ? 'animate-pulse' : ''}
+                />
+              </span>
               <Settings size={12} />
             </button>
             <button
