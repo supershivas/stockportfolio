@@ -208,11 +208,6 @@ export default function Portfolio() {
   }, [])
 
   const handleRefreshPrices = async () => {
-    if (!isApiConfigured()) {
-      setRefreshMsg('Configurez votre clé Finnhub pour activer le cours en temps réel.')
-      setTimeout(() => setRefreshMsg(''), 4000)
-      return
-    }
     setRefreshing(true)
     setRefreshMsg('Mise à jour des cours…')
     const tickers = positions.map((p) => p.ticker)
@@ -276,7 +271,7 @@ export default function Portfolio() {
           <button
             onClick={handleRefreshPrices}
             disabled={refreshing}
-            title="Mettre à jour les cours (requiert clé Finnhub)"
+            title="Mettre à jour les cours"
             className="flex items-center gap-2 border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
           >
             <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
@@ -298,7 +293,7 @@ export default function Portfolio() {
           <AlertCircle size={16} className="shrink-0 text-yellow-400" />
           <span className="flex-1">
             Il y a plus d'une semaine que vous n'avez pas mis à jour vos cours.
-            Cliquez <strong>Actualiser</strong> pour récupérer les prix en temps réel via Finnhub, ou mettez à jour manuellement chaque position.
+            Cliquez <strong>Actualiser</strong> pour récupérer les prix en temps réel, ou mettez à jour manuellement chaque position.
           </span>
           <button
             onClick={() => { markUpdated(); setShowUpdateReminder(false) }}
