@@ -1,6 +1,35 @@
 // Finnhub free tier: 60 req/min = 1 req/s — https://finnhub.io
 const FINNHUB_BASE = 'https://finnhub.io/api/v1'
 
+// Yahoo Finance — free, no key, used as fallback for tickers not on Finnhub (e.g. Euronext ETFs)
+async function fetchYahooQuote(ticker: string): Promise<QuoteResult | null> {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const json = await res.json()
+    const meta = json?.chart?.result?.[0]?.meta
+    if (!meta?.regularMarketPrice) return null
+    const price = meta.regularMarketPrice
+    const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price
+    const change = price - prevClose
+    const changePercent = prevClose ? (change / prevClose) * 100 : 0
+    return {
+      ticker,
+      price,
+      change,
+      changePercent,
+      high: meta.regularMarketDayHigh ?? price,
+      low: meta.regularMarketDayLow ?? price,
+      open: meta.regularMarketOpen ?? price,
+      prevClose,
+      live: true,
+    }
+  } catch {
+    return null
+  }
+}
+
 // Safe delay: 1100ms between calls → ~54 req/min, comfortably under the 60/min limit
 const RATE_LIMIT_DELAY_MS = 1100
 
@@ -26,25 +55,29 @@ export function isApiConfigured(): boolean {
 
 export async function fetchQuote(ticker: string): Promise<QuoteResult | null> {
   const key = getKey()
-  if (!key) return null
-  try {
-    const res = await fetch(`${FINNHUB_BASE}/quote?symbol=${encodeURIComponent(ticker)}&token=${key}`)
-    if (res.status === 429) {
-      // Rate limited — wait 5s and retry once
-      await new Promise((r) => setTimeout(r, 5000))
-      const retry = await fetch(`${FINNHUB_BASE}/quote?symbol=${encodeURIComponent(ticker)}&token=${key}`)
-      if (!retry.ok) return null
-      const d2 = await retry.json()
-      if (!d2.c || d2.c === 0) return null
-      return { ticker, price: d2.c, change: d2.d ?? 0, changePercent: d2.dp ?? 0, high: d2.h, low: d2.l, open: d2.o, prevClose: d2.pc, live: true }
-    }
-    if (!res.ok) return null
-    const d = await res.json()
-    if (!d.c || d.c === 0) return null
-    return { ticker, price: d.c, change: d.d ?? 0, changePercent: d.dp ?? 0, high: d.h, low: d.l, open: d.o, prevClose: d.pc, live: true }
-  } catch {
-    return null
+
+  // Try Finnhub first if API key is configured
+  if (key) {
+    try {
+      const res = await fetch(`${FINNHUB_BASE}/quote?symbol=${encodeURIComponent(ticker)}&token=${key}`)
+      if (res.status === 429) {
+        await new Promise((r) => setTimeout(r, 5000))
+        const retry = await fetch(`${FINNHUB_BASE}/quote?symbol=${encodeURIComponent(ticker)}&token=${key}`)
+        if (retry.ok) {
+          const d2 = await retry.json()
+          if (d2.c && d2.c !== 0)
+            return { ticker, price: d2.c, change: d2.d ?? 0, changePercent: d2.dp ?? 0, high: d2.h, low: d2.l, open: d2.o, prevClose: d2.pc, live: true }
+        }
+      } else if (res.ok) {
+        const d = await res.json()
+        if (d.c && d.c !== 0)
+          return { ticker, price: d.c, change: d.d ?? 0, changePercent: d.dp ?? 0, high: d.h, low: d.l, open: d.o, prevClose: d.pc, live: true }
+      }
+    } catch { /* fall through to Yahoo */ }
   }
+
+  // Fallback: Yahoo Finance (free, no key, covers Euronext ETFs like CW8.PA, PE500.PA)
+  return fetchYahooQuote(ticker)
 }
 
 export async function fetchMultipleQuotes(tickers: string[]): Promise<Map<string, QuoteResult>> {
@@ -86,6 +119,16 @@ export async function fetchEurUsdRate(): Promise<number> {
       }
     }
   } catch { /* continue to fallback */ }
+
+  // Try Yahoo Finance for EUR/USD as last resort
+  try {
+    const y = await fetchYahooQuote('EURUSD=X')
+    if (y && y.price > 0) {
+      localStorage.setItem(CACHE_KEY, y.price.toString())
+      localStorage.setItem(CACHE_TS_KEY, Date.now().toString())
+      return y.price
+    }
+  } catch { /* ignore */ }
 
   return cached ? parseFloat(cached) : FALLBACK
 }
