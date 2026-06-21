@@ -97,6 +97,8 @@ export const STOCK_DATABASE: StockSearchResult[] = [
   { ticker: 'PAEEM.PA', name: 'Amundi PEA MSCI Emerging Markets ETF',  sector: 'ETF Émergents',currency: 'EUR', currentPrice: 14,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'EWLD.PA',  name: 'Lyxor MSCI World UCITS ETF',            sector: 'ETF Monde',    currency: 'EUR', currentPrice: 22,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'LCWD.PA',  name: 'Lyxor Core MSCI World UCITS ETF',       sector: 'ETF Monde',    currency: 'EUR', currentPrice: 22,   country: '🇫🇷', type: 'ETF', pea: true },
+  { ticker: 'C50.PA',   name: 'Amundi Core EURO STOXX 50 UCITS ETF EUR Acc', sector: 'ETF Europe', currency: 'EUR', currentPrice: 168.92, country: '🇫🇷', type: 'ETF', pea: true },
+  { ticker: 'CAC.PA',   name: 'Amundi CAC 40 UCITS ETF Dist',           sector: 'ETF CAC 40',   currency: 'EUR', currentPrice: 84.90, country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'C40.PA',   name: 'Amundi CAC 40 UCITS ETF',               sector: 'ETF CAC 40',   currency: 'EUR', currentPrice: 35,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'RS2K.PA',  name: 'Amundi Russell 2000 UCITS ETF',         sector: 'ETF USA',      currency: 'EUR', currentPrice: 12,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'PUST.PA',  name: 'Amundi PEA MSCI USA UCITS ETF',         sector: 'ETF USA',      currency: 'EUR', currentPrice: 18,   country: '🇫🇷', type: 'ETF', pea: true },
