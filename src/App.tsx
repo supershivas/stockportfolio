@@ -212,12 +212,14 @@ export default function App() {
                           background: active ? 'var(--sidebar-selected)' : 'transparent',
                           color: active ? 'var(--sidebar-selected-fg)' : 'var(--sidebar-muted)',
                         }}
-                        onMouseEnter={e => {
+                        onPointerEnter={e => {
+                          if (e.pointerType === 'touch') return
                           if (!active) { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }
                           const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement
                           if (tip) tip.style.display = 'block'
                         }}
-                        onMouseLeave={e => {
+                        onPointerLeave={e => {
+                          if (e.pointerType === 'touch') return
                           if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }
                           const tip = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement
                           if (tip) tip.style.display = 'none'
