@@ -342,7 +342,14 @@ export default function Portfolio() {
                             <span className="text-xs font-bold text-accent/80">{p.ticker.slice(0, 2)}</span>
                           </div>
                           <div>
-                            <span className="font-medium text-white">{p.ticker}</span>
+                            <a
+                              href={`https://finance.yahoo.com/quote/${encodeURIComponent(p.ticker)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-white hover:text-accent transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Voir sur Yahoo Finance"
+                            >{p.ticker}</a>
                             {historyLen > 0 && (
                               <span className="ml-1.5 text-xs text-slate-500">{historyLen}pt</span>
                             )}
@@ -387,9 +394,17 @@ export default function Portfolio() {
                     {isExpanded && (
                       <tr key={`${p.id}-detail`} className="border-b" style={{ background: "var(--card-bg-2)", borderColor: "var(--card-border)" }}>
                         <td colSpan={11} className="px-6 py-4">
-                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                            Historique du cours — {p.ticker}
-                          </p>
+                          <div className="flex items-center gap-3 mb-1">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                              Historique du cours — {p.ticker}
+                            </p>
+                            <a
+                              href={`https://finance.yahoo.com/quote/${encodeURIComponent(p.ticker)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-accent hover:underline"
+                            >Yahoo Finance ↗</a>
+                          </div>
                           <PriceHistoryChart
                             ticker={p.ticker}
                             quantity={p.quantity}
