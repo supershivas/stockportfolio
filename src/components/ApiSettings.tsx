@@ -66,7 +66,8 @@ export default function ApiSettings({ onClose }: Props) {
 
   function handleCopy() {
     if (!backupId) return
-    navigator.clipboard.writeText(backupId).then(() => {
+    const link = `${window.location.origin}${window.location.pathname}?b=${backupId}`
+    navigator.clipboard.writeText(link).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -207,10 +208,10 @@ export default function ApiSettings({ onClose }: Props) {
                   onClick={handleCopy}
                   className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors"
                   style={{ border: '1px solid var(--card-border)', color: 'var(--text-muted)' }}
-                  title={`Copier le code complet : ${backupId}`}
+                  title="Copier le lien de partage (à bookmarker sur mobile)"
                 >
                   {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
-                  {copied ? 'Copié' : 'Copier'}
+                  {copied ? 'Lien copié !' : 'Copier le lien'}
                 </button>
               </div>
             </div>

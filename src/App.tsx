@@ -134,6 +134,25 @@ export default function App() {
   useEffect(() => {
     if (restoredRef.current) return
     restoredRef.current = true
+
+    // Check URL param ?b=<backupId> — allows bookmarking the app with auto-restore
+    const urlBackupId = new URLSearchParams(window.location.search).get('b')
+    if (urlBackupId && !getBackupId()) {
+      setCloudStatus('syncing')
+      restoreFromCloud(urlBackupId).then((restored) => {
+        if (restored && restored.length > 0) {
+          setPositions(restored)
+          setCloudStatus('ok')
+          // Clean the URL without reloading
+          window.history.replaceState({}, '', window.location.pathname)
+        } else {
+          setCloudStatus('idle')
+          setShowRestore(true)
+        }
+      })
+      return
+    }
+
     const backupId = getBackupId()
     if (positions.length === 0 && backupId) {
       setCloudStatus('syncing')
@@ -141,13 +160,11 @@ export default function App() {
         if (restored && restored.length > 0) {
           setPositions(restored)
         } else {
-          // Backup ID exists but restore failed or empty — show restore screen
           setShowRestore(true)
         }
         setCloudStatus('ok')
       })
     } else if (positions.length === 0 && !backupId) {
-      // New device/browser with no backup ID — show restore screen after a short delay
       setTimeout(() => setShowRestore(true), 800)
     } else if (getBackupId()) {
       setCloudStatus('ok')
