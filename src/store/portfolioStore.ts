@@ -44,8 +44,3 @@ export const usePortfolioStore = create<PortfolioState>()(
     { name: 'portfolio-storage' }
   )
 );
-
-// Persist storage on init
-if (typeof navigator !== 'undefined') {
-  navigator.storage?.persist?.()
-}
