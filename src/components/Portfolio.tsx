@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
-import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from '../data/stockDatabase'
 import { fetchMultipleQuotes, fetchQuote, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
@@ -119,7 +119,7 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
 }
 
 export default function Portfolio() {
-  const { positions, addPosition, updatePosition, removePosition } = usePortfolioStore()
+  const { positions, addPosition, updatePosition, removePosition, setPositions } = usePortfolioStore()
   const [modal, setModal] = useState<{ type: 'add' | 'edit'; data: Omit<Position, 'id'>; id?: string } | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [autoFilled, setAutoFilled] = useState(false)
@@ -131,6 +131,23 @@ export default function Portfolio() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [historyVersion, setHistoryVersion] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const dragIdRef = useRef<string | null>(null)
+
+  const handleDragStart = (id: string) => { dragIdRef.current = id }
+  const handleDragOver = (e: React.DragEvent, id: string) => { e.preventDefault(); setDragOverId(id) }
+  const handleDrop = (targetId: string) => {
+    const srcId = dragIdRef.current
+    if (!srcId || srcId === targetId) { setDragOverId(null); return }
+    const arr = [...positions]
+    const from = arr.findIndex(p => p.id === srcId)
+    const to = arr.findIndex(p => p.id === targetId)
+    const [item] = arr.splice(from, 1)
+    arr.splice(to, 0, item)
+    setPositions(arr)
+    setDragOverId(null)
+  }
+  const handleDragEnd = () => { dragIdRef.current = null; setDragOverId(null) }
 
   useEffect(() => {
     if (isApiConfigured()) fetchEurUsdRate().then(setEurUsd)
@@ -330,11 +347,21 @@ export default function Portfolio() {
                   <>
                     <tr
                       key={p.id}
-                      className={`border-b border-slate-700 cursor-pointer transition-colors ${isExpanded ? 'bg-slate-700/40' : 'hover:bg-slate-700/30'}`}
+                      draggable
+                      onDragStart={() => handleDragStart(p.id)}
+                      onDragOver={(e) => handleDragOver(e, p.id)}
+                      onDrop={() => handleDrop(p.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`border-b border-slate-700 cursor-pointer transition-colors select-none
+                        ${isExpanded ? 'bg-slate-700/40' : 'hover:bg-slate-700/30'}
+                        ${dragOverId === p.id ? 'outline outline-2 outline-accent' : ''}`}
                       onClick={() => setExpandedId(isExpanded ? null : p.id)}
                     >
                       <td className="px-3 py-3 text-slate-500">
-                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        <div className="flex items-center gap-1">
+                          <GripVertical size={13} className="text-slate-600 cursor-grab active:cursor-grabbing" />
+                          {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

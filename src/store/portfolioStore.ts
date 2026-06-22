@@ -39,7 +39,7 @@ export const usePortfolioStore = create<PortfolioState>()(
         debouncedSync(positions)
         return { positions }
       }),
-      setPositions: (positions) => set({ positions }),
+      setPositions: (positions) => { set({ positions }); debouncedSync(positions) },
     }),
     { name: 'portfolio-storage' }
   )
