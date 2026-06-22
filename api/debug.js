@@ -7,7 +7,7 @@ function httpsGet(hostname, path, headers = {}) {
     const req = https.request({ hostname, path, headers: { 'User-Agent': UA, ...headers }, maxHeaderSize: 65536 }, (res) => {
       let body = ''
       res.on('data', d => body += d)
-      res.on('end', () => resolve({ status: res.statusCode, cookies: res.headers['set-cookie'] ?? [], body: body.substring(0, 500) }))
+      res.on('end', () => resolve({ status: res.statusCode, cookies: res.headers['set-cookie'] ?? [], body }))
     })
     req.on('error', reject)
     req.end()
@@ -20,13 +20,14 @@ export default async function handler(req, res) {
   // Step 1: direct fetch without cookie
   try {
     const r = await httpsGet('query1.finance.yahoo.com', '/v8/finance/chart/AAPL?interval=1d&range=1d', { 'Accept': 'application/json' })
-    const price = JSON.parse(r.body)?.chart?.result?.[0]?.meta?.regularMarketPrice
-    steps.push({ step: '1_direct_no_cookie', status: r.status, price: price ?? null, ok: !!price })
+    let price = null
+    try { price = JSON.parse(r.body)?.chart?.result?.[0]?.meta?.regularMarketPrice } catch {}
+    steps.push({ step: '1_direct_no_cookie', status: r.status, price, bodyStart: r.body.substring(0, 120) })
   } catch (e) {
     steps.push({ step: '1_direct_no_cookie', error: String(e) })
   }
 
-  // Step 2: get cookie from yahoo
+  // Step 2: get cookie
   let a1 = null
   try {
     const r = await httpsGet('finance.yahoo.com', '/quote/AAPL/', { 'Accept': 'text/html' })
@@ -42,19 +43,21 @@ export default async function handler(req, res) {
     try {
       const r = await httpsGet('query2.finance.yahoo.com', '/v1/test/getcrumb', { 'Cookie': a1 })
       crumb = r.body?.trim()
-      steps.push({ step: '3_get_crumb', status: r.status, crumb: crumb?.substring(0, 20), ok: !!crumb && !crumb.includes('error') })
+      steps.push({ step: '3_get_crumb', status: r.status, crumb, ok: !!crumb && !crumb.includes('error') })
     } catch (e) {
       steps.push({ step: '3_get_crumb', error: String(e) })
     }
   }
 
-  // Step 4: fetch with cookie+crumb
+  // Step 4: fetch DCAM.PA with cookie+crumb
   if (a1 && crumb && !crumb.includes('error')) {
     try {
-      const path = `/v8/finance/chart/AAPL?interval=1d&range=1d&crumb=${encodeURIComponent(crumb)}`
+      const path = `/v8/finance/chart/DCAM.PA?interval=1d&range=1d&crumb=${encodeURIComponent(crumb)}`
       const r = await httpsGet('query1.finance.yahoo.com', path, { 'Cookie': a1, 'Accept': 'application/json' })
-      const price = JSON.parse(r.body)?.chart?.result?.[0]?.meta?.regularMarketPrice
-      steps.push({ step: '4_with_cookie_crumb', status: r.status, price: price ?? null, ok: !!price })
+      let price = null
+      let parseErr = null
+      try { price = JSON.parse(r.body)?.chart?.result?.[0]?.meta?.regularMarketPrice } catch (e) { parseErr = String(e) }
+      steps.push({ step: '4_with_cookie_crumb', status: r.status, price, parseErr, bodyStart: r.body.substring(0, 120) })
     } catch (e) {
       steps.push({ step: '4_with_cookie_crumb', error: String(e) })
     }
