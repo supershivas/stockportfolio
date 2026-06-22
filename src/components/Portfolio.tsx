@@ -325,8 +325,76 @@ export default function Portfolio() {
         </div>
       )}
 
+      {/* Mobile cards */}
+      <div className="lg:hidden space-y-3">
+        {positions.map((p) => {
+          const value = toEur(p.quantity * p.currentPrice, p.currency)
+          const pnl = toEur(p.quantity * (p.currentPrice - p.purchasePrice), p.currency)
+          const ret = ((p.currentPrice - p.purchasePrice) / p.purchasePrice) * 100
+          const isExpanded = expandedId === p.id
+          return (
+            <div key={p.id} className="rounded-xl border overflow-hidden" style={{ background: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+              {/* Card header — tap to expand */}
+              <div className="flex items-center gap-3 px-4 py-3 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : p.id)}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent)20', border: '1px solid var(--accent)30' }}>
+                  <span className="text-xs font-bold" style={{ color: 'var(--accent)' }}>{p.ticker.slice(0, 2)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <a href={`https://finance.yahoo.com/quote/${encodeURIComponent(p.ticker)}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }} onClick={e => e.stopPropagation()}>{p.ticker}</a>
+                    {p.pea && <span className="px-1 py-0.5 rounded text-[10px] font-medium" style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80' }}>PEA</span>}
+                  </div>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{p.name}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{fmt(value)}</p>
+                  <p className={`text-xs font-medium ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pnl >= 0 ? '+' : ''}{fmt(pnl)} ({ret >= 0 ? '+' : ''}{ret.toFixed(1)}%)</p>
+                </div>
+              </div>
+              {/* Expanded detail */}
+              {isExpanded && (
+                <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: 'var(--card-border)' }}>
+                  <div className="grid grid-cols-3 gap-2 pt-3">
+                    {[
+                      { label: 'Quantité', value: String(p.quantity) },
+                      { label: 'Prix achat', value: fmt(toEur(p.purchasePrice, p.currency)) },
+                      { label: 'Prix actuel', value: fmt(toEur(p.currentPrice, p.currency)) },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="rounded-lg p-2 text-center" style={{ background: 'var(--card-bg-2)' }}>
+                        <p className="text-[10px] mb-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
+                        <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id }); setAutoFilled(false) }}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: 'var(--card-bg-2)', color: 'var(--text-secondary)', border: '1px solid var(--card-border)' }}
+                    ><Pencil size={12} className="inline mr-1" />Modifier</button>
+                    <button
+                      onClick={() => setDeleteId(p.id)}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
+                    ><Trash2 size={12} className="inline mr-1" />Supprimer</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {/* Mobile total */}
+        <div className="rounded-xl px-4 py-3 flex justify-between items-center" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+          <span className="font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>Total portefeuille</span>
+          <div className="text-right">
+            <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(totalValue)}</p>
+            <p className={`text-xs font-medium ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>{totalPnL >= 0 ? '+' : ''}{fmt(totalPnL)} ({((totalPnL / totalCost) * 100).toFixed(1)}%)</p>
+          </div>
+        </div>
+      </div>
+
       {/* Table */}
-      <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+      <div className="hidden lg:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

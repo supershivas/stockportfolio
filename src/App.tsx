@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield,
-  TrendingDown, Menu, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud,
+  TrendingDown, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud,
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import { isApiConfigured } from './services/marketData'
@@ -107,7 +107,7 @@ function getInitialTheme(): 'dark' | 'light' {
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('dashboard')
+  const [page, setPage] = useState<Page>('portfolio')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showApiSettings, setShowApiSettings] = useState(false)
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
@@ -166,8 +166,6 @@ export default function App() {
       case 'undervalued':    return <UndervaluedStocks />
     }
   }
-
-  const currentLabel = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.id === page)?.label ?? ''
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--content-bg)', color: 'var(--text-primary)' }}>
@@ -284,17 +282,33 @@ export default function App() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile topbar */}
-        <header className="px-4 py-3 flex items-center gap-3 lg:hidden" style={{ background: 'var(--sidebar-bg)', borderBottom: '1px solid var(--sidebar-border)' }}>
-          <button onClick={() => setSidebarOpen(true)} style={{ color: 'var(--sidebar-muted)' }}>
-            <Menu size={22} />
-          </button>
-          <span className="font-semibold font-title" style={{ color: 'var(--sidebar-fg)' }}>{currentLabel || 'PortfolioAI'}</span>
-        </header>
-
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-16 lg:pb-6">
           {renderPage()}
         </main>
+
+        {/* Bottom nav — mobile only */}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch py-2" style={{ background: 'var(--sidebar-bg)', borderTop: '1px solid var(--sidebar-border)' }}>
+          {([
+            { id: 'dashboard' as Page, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+            { id: 'portfolio' as Page, label: 'Positions', icon: <Briefcase size={20} /> },
+            { id: 'dividends' as Page, label: 'Dividendes', icon: <DollarSign size={20} /> },
+            { id: 'projections' as Page, label: 'Projections', icon: <TrendingUp size={20} /> },
+            { id: 'indicators' as Page, label: 'Plus', icon: <BarChart3 size={20} /> },
+          ] as { id: Page; label: string; icon: React.ReactNode }[]).map((item) => {
+            const active = page === item.id
+            return (
+              <button
+                key={item.id}
+                onClick={() => setPage(item.id)}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5"
+                style={{ color: active ? 'var(--accent)' : 'var(--sidebar-muted)' }}
+              >
+                {item.icon}
+                <span className="text-[10px]">{item.label}</span>
+              </button>
+            )
+          })}
+        </nav>
       </div>
     </div>
   )
