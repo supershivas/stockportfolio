@@ -1,58 +1,37 @@
 import { Position } from '../types'
 
-const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b'
-const BACKUP_ID_KEY = 'portfolio_backup_id'
+// Debounce helper
+let syncTimer: ReturnType<typeof setTimeout> | null = null
 
-export function getBackupId(): string | null {
-  return localStorage.getItem(BACKUP_ID_KEY)
+export function isCloudConfigured(): boolean {
+  // Cloud sync works via /api/portfolio (GitHub), available as long as GITHUB_TOKEN is set on Vercel
+  return true
 }
 
 export async function syncToCloud(positions: Position[]): Promise<void> {
-  try {
-    const body = JSON.stringify({ positions })
-    const existingId = getBackupId()
-
-    if (!existingId) {
-      // First backup — create a new bin
-      const res = await fetch(JSONBIN_BASE, {
+  if (syncTimer) clearTimeout(syncTimer)
+  syncTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/portfolio', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Bin-Name': 'PortfolioAI',
-        },
-        body,
-      })
-      if (!res.ok) return
-      const data = await res.json()
-      const id: string = data?.metadata?.id
-      if (id) {
-        localStorage.setItem(BACKUP_ID_KEY, id)
-      }
-    } else {
-      // Subsequent saves — update existing bin
-      await fetch(`${JSONBIN_BASE}/${existingId}`, {
-        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body,
+        body: JSON.stringify({ positions }),
       })
-    }
-  } catch {
-    // Silent failure — don't break the UI
-  }
+    } catch { /* silent */ }
+  }, 3000)
 }
 
-export async function restoreFromCloud(binId: string): Promise<Position[] | null> {
+export async function restoreFromCloud(): Promise<Position[] | null> {
   try {
-    const res = await fetch(`${JSONBIN_BASE}/${binId.trim()}/latest`)
+    const res = await fetch('/api/portfolio')
     if (!res.ok) return null
     const data = await res.json()
-    const positions: Position[] = data?.record?.positions
-    if (Array.isArray(positions)) {
-      localStorage.setItem(BACKUP_ID_KEY, binId.trim())
-      return positions
-    }
+    if (Array.isArray(data?.positions)) return data.positions
     return null
   } catch {
     return null
   }
 }
+
+// Legacy: kept for URL param restore (?b=ID) - no-op now
+export function getBackupId(): string | null { return 'github' }

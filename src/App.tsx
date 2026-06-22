@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import { isApiConfigured } from './services/marketData'
-import { getBackupId, restoreFromCloud } from './services/cloudBackup'
+import { restoreFromCloud } from './services/cloudBackup'
 import { usePortfolioStore } from './store/portfolioStore'
 import Dashboard from './components/Dashboard'
 import Portfolio from './components/Portfolio'
@@ -113,9 +113,6 @@ export default function App() {
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
   const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
-  const [showRestore, setShowRestore] = useState(false)
-  const [restoreCode, setRestoreCode] = useState('')
-  const [restoreStatus, setRestoreStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
   const positions = usePortfolioStore((s) => s.positions)
   const setPositions = usePortfolioStore((s) => s.setPositions)
   const restoredRef = useRef(false)
@@ -130,54 +127,17 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
-  // Auto-restore on startup if no local positions but backup ID exists
+  // Auto-restore from GitHub on startup when local store is empty
   useEffect(() => {
     if (restoredRef.current) return
     restoredRef.current = true
-
-    // Check URL param ?b=<backupId> — allows bookmarking the app with auto-restore
-    const urlBackupId = new URLSearchParams(window.location.search).get('b')
-    if (urlBackupId && !getBackupId()) {
-      setCloudStatus('syncing')
-      restoreFromCloud(urlBackupId).then((restored) => {
-        if (restored && restored.length > 0) {
-          setPositions(restored)
-          setCloudStatus('ok')
-          // Clean the URL without reloading
-          window.history.replaceState({}, '', window.location.pathname)
-        } else {
-          setCloudStatus('idle')
-          setShowRestore(true)
-        }
-      })
-      return
-    }
-
-    const backupId = getBackupId()
-    if (positions.length === 0 && backupId) {
-      setCloudStatus('syncing')
-      restoreFromCloud(backupId).then((restored) => {
-        if (restored && restored.length > 0) {
-          setPositions(restored)
-        } else {
-          setShowRestore(true)
-        }
-        setCloudStatus('ok')
-      })
-    } else if (positions.length === 0 && !backupId) {
-      setTimeout(() => setShowRestore(true), 800)
-    } else if (getBackupId()) {
+    if (positions.length > 0) { setCloudStatus('ok'); return }
+    setCloudStatus('syncing')
+    restoreFromCloud().then((restored) => {
+      if (restored && restored.length > 0) setPositions(restored)
       setCloudStatus('ok')
-    }
+    }).catch(() => setCloudStatus('idle'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Update cloud status indicator when backup ID appears
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (getBackupId()) setCloudStatus('ok')
-    }, 2000)
-    return () => clearInterval(interval)
   }, [])
 
   const renderPage = () => {
@@ -193,66 +153,9 @@ export default function App() {
     }
   }
 
-  async function handleRestore() {
-    if (!restoreCode.trim()) return
-    setRestoreStatus('loading')
-    const restored = await restoreFromCloud(restoreCode.trim())
-    if (restored && restored.length > 0) {
-      setPositions(restored)
-      setCloudStatus('ok')
-      setRestoreStatus('ok')
-      setTimeout(() => setShowRestore(false), 1000)
-    } else {
-      setRestoreStatus('error')
-    }
-  }
-
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--content-bg)', color: 'var(--text-primary)' }}>
       {showApiSettings && <ApiSettings onClose={() => { setShowApiSettings(false); setApiConfigured(isApiConfigured()) }} />}
-
-      {/* Restore modal — shown on new device when portfolio is empty */}
-      {showRestore && positions.length === 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,0.8)' }}>
-          <div className="w-full max-w-sm rounded-2xl p-6 space-y-4" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Restaurer le portefeuille</h2>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Entrez votre code de récupération</p>
-              </div>
-              <button onClick={() => setShowRestore(false)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>
-            </div>
-            <Cloud size={32} style={{ color: 'var(--accent)' }} className="mx-auto" />
-            <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-              Retrouvez votre code dans <strong>Paramètres → Sauvegarde cloud</strong> sur l'appareil principal.
-            </p>
-            <input
-              type="text"
-              placeholder="ex: 6849f2a3d3b30c3b..."
-              className="w-full px-3 py-2.5 rounded-lg text-sm font-mono"
-              style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
-              value={restoreCode}
-              onChange={e => { setRestoreCode(e.target.value); setRestoreStatus('idle') }}
-              onKeyDown={e => e.key === 'Enter' && handleRestore()}
-            />
-            {restoreStatus === 'error' && <p className="text-xs text-red-400">Code invalide ou introuvable.</p>}
-            {restoreStatus === 'ok' && <p className="text-xs text-green-400">Portefeuille restauré ✓</p>}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowRestore(false)}
-                className="flex-1 py-2.5 rounded-lg text-sm"
-                style={{ background: 'var(--card-bg-2)', color: 'var(--text-secondary)', border: '1px solid var(--card-border)' }}
-              >Nouveau portefeuille</button>
-              <button
-                onClick={handleRestore}
-                disabled={restoreStatus === 'loading' || !restoreCode.trim()}
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
-                style={{ background: 'var(--accent)', color: '#fff' }}
-              >{restoreStatus === 'loading' ? 'Restauration…' : 'Restaurer'}</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
