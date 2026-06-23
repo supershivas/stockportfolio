@@ -591,8 +591,8 @@ export default function Portfolio() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-800 border border-green-500/40 text-green-300 text-sm px-4 py-3 rounded-xl shadow-xl animate-fade-in">
-          <Check size={15} className="text-green-400 shrink-0" />
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-600 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-xl animate-fade-in whitespace-nowrap">
+          <Check size={15} className="shrink-0" />
           {toast}
         </div>
       )}
