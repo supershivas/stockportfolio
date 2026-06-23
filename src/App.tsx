@@ -108,13 +108,7 @@ function getInitialTheme(): 'dark' | 'light' {
   return 'dark'
 }
 
-export default function App() {
-  if (window.location.pathname === '/jose') return <JosePublic />
-
-  const [authed, setAuthed] = useState(isAuthenticated)
-  if (!authed) return <Login onAuth={() => setAuthed(true)} />
-
-
+function AppMain() {
   const [page, setPage] = useState<Page>('portfolio')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showApiSettings, setShowApiSettings] = useState(false)
@@ -306,4 +300,11 @@ export default function App() {
       </div>
     </div>
   )
+}
+
+export default function App() {
+  if (window.location.pathname === '/jose') return <JosePublic />
+  const [authed, setAuthed] = useState(isAuthenticated)
+  if (!authed) return <Login onAuth={() => setAuthed(true)} />
+  return <AppMain />
 }
