@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import JosePublic from './components/JosePublic'
+import Login, { isAuthenticated } from './components/Login'
 import { isApiConfigured } from './services/marketData'
 import { restoreFromCloud } from './services/cloudBackup'
 import { usePortfolioStore } from './store/portfolioStore'
@@ -109,6 +110,9 @@ function getInitialTheme(): 'dark' | 'light' {
 
 export default function App() {
   if (window.location.pathname === '/jose') return <JosePublic />
+
+  const [authed, setAuthed] = useState(isAuthenticated)
+  if (!authed) return <Login onAuth={() => setAuthed(true)} />
 
 
   const [page, setPage] = useState<Page>('portfolio')
