@@ -41,11 +41,11 @@ function JoseIndexSection() {
   const prev = history[history.length - 2] ?? JOSE_SCORE
   const delta = JOSE_SCORE - prev
 
-  // Gauge arc: score 0-100 → angle -90 to 90 degrees (half circle)
-  const angle = -90 + (JOSE_SCORE / 100) * 180
-  const toRad = (deg: number) => (deg * Math.PI) / 180
-  const gx = 60 + 48 * Math.cos(toRad(angle))
-  const gy = 60 + 48 * Math.sin(toRad(angle))
+  // Gauge: score 0 = left (180°), score 50 = top (90°), score 100 = right (0°)
+  // SVG y-axis is flipped, so gy uses minus-sin
+  const gaugeRad = (Math.PI) * (1 - JOSE_SCORE / 100)
+  const gx = 60 + 48 * Math.cos(gaugeRad)
+  const gy = 60 - 48 * Math.sin(gaugeRad)
 
   return (
     <div className="rounded-xl border bg-slate-800 p-5 space-y-5" style={{ borderColor: status.color + '44' }}>
@@ -87,7 +87,7 @@ function JoseIndexSection() {
             <path d="M12,60 A48,48 0 0,1 108,60" fill="none" stroke="rgb(51,65,85)" strokeWidth="8" strokeLinecap="round"/>
             {/* Colored fill up to score */}
             <path
-              d={`M12,60 A48,48 0 ${angle > 0 ? 1 : 0},1 ${gx.toFixed(1)},${gy.toFixed(1)}`}
+              d={`M12,60 A48,48 0 0,1 ${gx.toFixed(1)},${gy.toFixed(1)}`}
               fill="none"
               stroke={status.color}
               strokeWidth="8"

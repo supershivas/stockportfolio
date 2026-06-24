@@ -32,10 +32,9 @@ export default function JosePublic() {
   const prev = history[history.length - 2] ?? JOSE_SCORE
   const delta = JOSE_SCORE - prev
 
-  const angle = -90 + (JOSE_SCORE / 100) * 180
-  const toRad = (deg: number) => (deg * Math.PI) / 180
-  const gx = 60 + 48 * Math.cos(toRad(angle))
-  const gy = 60 + 48 * Math.sin(toRad(angle))
+  const gaugeRad = Math.PI * (1 - JOSE_SCORE / 100)
+  const gx = 60 + 48 * Math.cos(gaugeRad)
+  const gy = 60 - 48 * Math.sin(gaugeRad)
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--content-bg)', color: 'var(--text-primary)' }}>
@@ -96,7 +95,7 @@ export default function JosePublic() {
               <svg viewBox="0 0 120 70" className="w-36">
                 <path d="M12,60 A48,48 0 0,1 108,60" fill="none" stroke="var(--card-border)" strokeWidth="8" strokeLinecap="round"/>
                 <path
-                  d={`M12,60 A48,48 0 ${angle > 0 ? 1 : 0},1 ${gx.toFixed(1)},${gy.toFixed(1)}`}
+                  d={`M12,60 A48,48 0 0,1 ${gx.toFixed(1)},${gy.toFixed(1)}`}
                   fill="none"
                   stroke={status.color}
                   strokeWidth="8"
