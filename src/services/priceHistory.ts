@@ -3,7 +3,7 @@ export interface PricePoint {
   price: number
 }
 
-const MAX_POINTS = 365 // ~1 year of daily snapshots
+const MAX_POINTS = 10_000 // ~27 years of daily data — effectively unlimited
 
 function key(ticker: string) {
   return `ph_${ticker}`
