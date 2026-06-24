@@ -129,14 +129,14 @@ function AppMain() {
     return () => clearInterval(interval)
   }, [])
 
-  // Auto-restore from GitHub on startup when local store is empty
+  // Always restore from GitHub on startup to get price history.
+  // Positions are only overwritten if localStorage is empty.
   useEffect(() => {
     if (restoredRef.current) return
     restoredRef.current = true
-    if (positions.length > 0) { setCloudStatus('ok'); return }
     setCloudStatus('syncing')
     restoreFromCloud().then((data) => {
-      if (data?.positions && data.positions.length > 0) setPositions(data.positions)
+      if (data?.positions && data.positions.length > 0 && positions.length === 0) setPositions(data.positions)
       setCloudStatus('ok')
     }).catch(() => setCloudStatus('idle'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
