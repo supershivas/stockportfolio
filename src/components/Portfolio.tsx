@@ -62,10 +62,13 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
     )
   }
 
-  // Chart shows net gain = (price - purchasePrice) × quantity
-  // ts used as numeric X axis so spacing is proportional to real time elapsed
-  const data = history.map((pt) => ({
-    ts: pt.ts,
+  // Filter weekends (no market data), then space points evenly (no weekend gaps)
+  const isWeekend = (ts: number) => { const d = new Date(ts).getDay(); return d === 0 || d === 6 }
+  const tradingDays = history.filter((pt) => !isWeekend(pt.ts))
+  const chartHistory = tradingDays.length >= 2 ? tradingDays : history
+
+  const data = chartHistory.map((pt, idx) => ({
+    idx,
     date: formatDate(pt.ts),
     gain: Math.round((pt.price - purchasePrice) * quantity),
   }))
@@ -77,8 +80,7 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
   const rising = currentGain >= firstGain
   const positive = currentGain >= 0
   const color = positive ? '#22c55e' : '#f87171'
-  const pct = ((history[history.length - 1].price - purchasePrice) / purchasePrice * 100)
-  const tsDomain: [number, number] = [data[0].ts, data[data.length - 1].ts]
+  const pct = ((chartHistory[chartHistory.length - 1].price - purchasePrice) / purchasePrice * 100)
 
   return (
     <div className="mt-3">
@@ -99,11 +101,8 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
             </linearGradient>
           </defs>
           <XAxis
-            dataKey="ts"
-            type="number"
-            scale="time"
-            domain={tsDomain}
-            tickFormatter={(v: number) => formatDate(v)}
+            dataKey="idx"
+            tickFormatter={(_v, i) => data[i]?.date ?? ''}
             tick={{ fill: '#64748b', fontSize: 10 }}
             axisLine={false}
             tickLine={false}
@@ -113,7 +112,7 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
           <Tooltip
             contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
             itemStyle={{ color: 'var(--text-primary)' }}
-            labelFormatter={(v: number) => formatDate(v)}
+            labelFormatter={(_v, payload) => payload?.[0] ? (payload[0] as { payload: { date: string } }).payload.date : ''}
             formatter={(v: number) => [`${v >= 0 ? '+' : ''}${fmtVal(v)}`, 'Gain net']}
           />
           <ReferenceLine y={0} stroke="#475569" strokeDasharray="4 3" strokeWidth={1} />
