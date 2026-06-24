@@ -21,7 +21,14 @@ export default function JosePublic() {
     '2y': '2 ans',
   }
   const history = historyMap[timeframe]
-  const chartData = history.map((v, i) => ({ i, v }))
+  const stepMs: Record<JoseTimeframe, number> = {
+    '30d': 24 * 60 * 60 * 1000,
+    '1y': 30 * 24 * 60 * 60 * 1000,
+    '2y': 7 * 24 * 60 * 60 * 1000,
+  }
+  const nowTs = Date.now()
+  const step = stepMs[timeframe]
+  const chartData = history.map((v, i) => ({ i, v, ts: nowTs - (history.length - 1 - i) * step }))
   const prev = history[history.length - 2] ?? JOSE_SCORE
   const delta = JOSE_SCORE - prev
 
@@ -118,10 +125,10 @@ export default function JosePublic() {
                     </linearGradient>
                   </defs>
                   <YAxis domain={[30, 80]} hide />
-                  <XAxis dataKey="i" hide />
+                  <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
                   <Tooltip
                     contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: 'var(--text-primary)' }}
-                    labelFormatter={() => ''}
+                    labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                     formatter={(v: number) => [`${v}`, 'JoseIndex2000']}
                   />
                   <Area type="monotone" dataKey="v" stroke={status.color} strokeWidth={2} fill="url(#joseGradPub)" dot={false} />

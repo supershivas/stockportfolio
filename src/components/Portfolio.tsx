@@ -63,7 +63,9 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
   }
 
   // Chart shows net gain = (price - purchasePrice) × quantity
+  // ts used as numeric X axis so spacing is proportional to real time elapsed
   const data = history.map((pt) => ({
+    ts: pt.ts,
     date: formatDate(pt.ts),
     gain: Math.round((pt.price - purchasePrice) * quantity),
   }))
@@ -76,6 +78,7 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
   const positive = currentGain >= 0
   const color = positive ? '#22c55e' : '#f87171'
   const pct = ((history[history.length - 1].price - purchasePrice) / purchasePrice * 100)
+  const tsDomain: [number, number] = [data[0].ts, data[data.length - 1].ts]
 
   return (
     <div className="mt-3">
@@ -95,11 +98,22 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
               <stop offset="95%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+          <XAxis
+            dataKey="ts"
+            type="number"
+            scale="time"
+            domain={tsDomain}
+            tickFormatter={(v: number) => formatDate(v)}
+            tick={{ fill: '#64748b', fontSize: 10 }}
+            axisLine={false}
+            tickLine={false}
+            minTickGap={40}
+          />
           <YAxis domain={[Math.min(minG, 0) - Math.abs(minG) * 0.1, maxG + Math.abs(maxG) * 0.1]} hide />
           <Tooltip
             contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
             itemStyle={{ color: 'var(--text-primary)' }}
+            labelFormatter={(v: number) => formatDate(v)}
             formatter={(v: number) => [`${v >= 0 ? '+' : ''}${fmtVal(v)}`, 'Gain net']}
           />
           <ReferenceLine y={0} stroke="#475569" strokeDasharray="4 3" strokeWidth={1} />

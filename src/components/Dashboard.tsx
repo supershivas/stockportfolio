@@ -172,7 +172,8 @@ export default function Dashboard() {
                 const price = live ? live.price : idx.fallback
                 const change = live ? live.changePercent : idx.changePercent
                 const shape = SPARK_SHAPES[idx.symbol] || [0.95, 0.97, 0.96, 0.98, 0.99, 0.98, 0.99, 1]
-                const sparkData = shape.map((r) => ({ v: +(price * r).toFixed(2) }))
+                const nowD = Date.now()
+                const sparkData = shape.map((r, si) => ({ v: +(price * r).toFixed(2), ts: nowD - (shape.length - 1 - si) * 24 * 60 * 60 * 1000 }))
                 return (
                   <div key={idx.symbol} className="rounded-xl border border-slate-700 bg-slate-800 p-3">
                     <div className="flex justify-between items-start mb-1.5">
@@ -193,12 +194,13 @@ export default function Dashboard() {
                     </div>
                     <ResponsiveContainer width="100%" height={40}>
                       <LineChart data={sparkData}>
+                        <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
                         <YAxis domain={['dataMin', 'dataMax']} hide />
                         <Line type="monotone" dataKey="v" stroke={change >= 0 ? '#22c55e' : '#f87171'} strokeWidth={2} dot={false} />
                         <Tooltip
                           contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
                           itemStyle={{ color: 'var(--text-primary)' }}
-                          labelFormatter={() => ''}
+                          labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
                           formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.label]}
                         />
                       </LineChart>
@@ -285,7 +287,7 @@ export default function Dashboard() {
                               <div className="h-px w-full bg-slate-700" />
                             </div>
                           )
-                          const sparkData = hist.map((pt) => ({ v: (pt.price - p.purchasePrice) * p.quantity }))
+                          const sparkData = hist.map((pt) => ({ v: (pt.price - p.purchasePrice) * p.quantity, ts: pt.ts }))
                           const lastGain = sparkData[sparkData.length - 1].v
                           const sparkColor = lastGain >= 0 ? '#22c55e' : '#f87171'
                           const minV = Math.min(...sparkData.map(d => d.v))
@@ -294,9 +296,15 @@ export default function Dashboard() {
                           return (
                             <ResponsiveContainer width="100%" height={32}>
                               <LineChart data={sparkData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+                                <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
                                 <YAxis domain={[minV - pad, maxV + pad]} hide />
                                 <ReferenceLine y={0} stroke="#475569" strokeDasharray="3 2" strokeWidth={1} />
                                 <Line type="monotone" dataKey="v" stroke={sparkColor} strokeWidth={1.5} dot={false} />
+                                <Tooltip
+                                  contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '6px', fontSize: '10px', padding: '3px 7px', color: 'var(--text-primary)' }}
+                                  labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                  formatter={(v: number) => [`${v >= 0 ? '+' : ''}${Math.round(v as number)} €`, 'Gain']}
+                                />
                               </LineChart>
                             </ResponsiveContainer>
                           )

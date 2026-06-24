@@ -25,7 +25,19 @@ function JoseIndexSection() {
     '2y': '2 ans',
   }
   const history = historyMap[timeframe]
-  const chartData = history.map((v, i) => ({ i, v }))
+  // Build approximate timestamps: last point = now, step back by period
+  const stepMs: Record<JoseTimeframe, number> = {
+    '30d': 24 * 60 * 60 * 1000,           // 1 day
+    '1y': 30 * 24 * 60 * 60 * 1000,       // ~1 month
+    '2y': 7 * 24 * 60 * 60 * 1000,        // 1 week
+  }
+  const now = Date.now()
+  const step = stepMs[timeframe]
+  const chartData = history.map((v, i) => ({
+    i,
+    v,
+    ts: now - (history.length - 1 - i) * step,
+  }))
   const prev = history[history.length - 2] ?? JOSE_SCORE
   const delta = JOSE_SCORE - prev
 
@@ -107,10 +119,10 @@ function JoseIndexSection() {
                 </linearGradient>
               </defs>
               <YAxis domain={[30, 80]} hide />
-              <XAxis dataKey="i" hide />
+              <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
               <Tooltip
                 contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: '#f1f5f9' }}
-                labelFormatter={() => ''}
+                labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                 formatter={(v: number) => [`${v}`, 'JoseIndex2000']}
               />
               {/* Zone bands */}
@@ -236,7 +248,12 @@ export default function Indicators() {
           const displayValue = liveData ? liveData.price : ind.value
           const displayChange = liveData ? liveData.changePercent : ind.change
           const styles = STATUS_STYLES[ind.status]
-          const sparkData = ind.history.map((v, i) => ({ v, i }))
+          const nowMs = Date.now()
+          const sparkData = ind.history.map((v, i) => ({
+            v,
+            i,
+            ts: nowMs - (ind.history.length - 1 - i) * 24 * 60 * 60 * 1000,
+          }))
           const isPositiveChange = displayChange >= 0
           const ChangeIcon = displayChange === 0 ? Minus : isPositiveChange ? TrendingUp : TrendingDown
 
@@ -273,7 +290,8 @@ export default function Indicators() {
               {/* Sparkline */}
               <ResponsiveContainer width="100%" height={40}>
                 <LineChart data={sparkData}>
-                    <YAxis domain={['dataMin', 'dataMax']} hide />
+                  <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
+                  <YAxis domain={['dataMin', 'dataMax']} hide />
                   <Line
                     type="monotone"
                     dataKey="v"
@@ -283,7 +301,7 @@ export default function Indicators() {
                   />
                   <Tooltip
                     contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-primary)' }}
-                    labelFormatter={() => ''}
+                    labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
                     formatter={(v: number) => [`${v} ${ind.unit}`, ind.name]}
                   />
                 </LineChart>
