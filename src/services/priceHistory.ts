@@ -3,7 +3,7 @@ export interface PricePoint {
   price: number
 }
 
-const MAX_POINTS = 90 // ~3 months of daily snapshots
+const MAX_POINTS = 365 // ~1 year of daily snapshots
 
 function key(ticker: string) {
   return `ph_${ticker}`
@@ -16,17 +16,35 @@ export function getHistory(ticker: string): PricePoint[] {
   } catch { return [] }
 }
 
+export function getAllHistory(): Record<string, PricePoint[]> {
+  const result: Record<string, PricePoint[]> = {}
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i)
+    if (!k?.startsWith('ph_')) continue
+    const ticker = k.slice(3)
+    try {
+      const raw = localStorage.getItem(k)
+      if (raw) result[ticker] = JSON.parse(raw)
+    } catch { /* skip */ }
+  }
+  return result
+}
+
+export function restoreAllHistory(data: Record<string, PricePoint[]>) {
+  for (const [ticker, points] of Object.entries(data)) {
+    if (Array.isArray(points) && points.length > 0) {
+      localStorage.setItem(key(ticker), JSON.stringify(points))
+    }
+  }
+}
+
 export function appendPrice(ticker: string, price: number) {
   try {
     const history = getHistory(ticker)
     const now = Date.now()
     const todayStart = new Date().setHours(0, 0, 0, 0)
-    // Until we have a curve (2+ points), allow 2 saves per day so the chart
-    // can appear after a single session. Once the history is established,
-    // keep one point per day to avoid noise.
     let filtered: PricePoint[]
     if (history.length < 2) {
-      // Allow at most 2 entries today
       const todayEntries = history.filter((p) => p.ts >= todayStart)
       if (todayEntries.length >= 2) return
       filtered = history

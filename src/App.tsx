@@ -135,8 +135,8 @@ function AppMain() {
     restoredRef.current = true
     if (positions.length > 0) { setCloudStatus('ok'); return }
     setCloudStatus('syncing')
-    restoreFromCloud().then((restored) => {
-      if (restored && restored.length > 0) setPositions(restored)
+    restoreFromCloud().then((data) => {
+      if (data?.positions && data.positions.length > 0) setPositions(data.positions)
       setCloudStatus('ok')
     }).catch(() => setCloudStatus('idle'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
