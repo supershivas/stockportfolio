@@ -1,5 +1,7 @@
 import { marketIndicators } from '../data/indicators'
 import { JOSE_COMPONENTS, JOSE_SCORE, JOSE_HISTORY_2Y, JOSE_HISTORY_1Y, JOSE_HISTORY_30D, getJoseStatus } from '../data/joseIndex'
+import JeromeUltraSection from './JeromeUltraSection'
+import CycleCompassSection from './CycleCompassSection'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts'
 import { TrendingUp, TrendingDown, Minus, RefreshCw, Info } from 'lucide-react'
 import { useState } from 'react'
@@ -348,6 +350,12 @@ export default function Indicators() {
       </div>
       {/* JoseIndex2000 */}
       <JoseIndexSection />
+
+      {/* JérômeIndex Ultra */}
+      <JeromeUltraSection />
+
+      {/* CycleCompass */}
+      <CycleCompassSection />
 
       <Sources sources={[
         { label: 'VIX — CBOE', url: 'https://www.cboe.com/tradable_products/vix/' },
