@@ -5,7 +5,7 @@
       "name": "Lyxor CAC 40 UCITS ETF (PEA)",
       "quantity": 2,
       "purchasePrice": 82.94,
-      "currentPrice": 84.86,
+      "currentPrice": 85.14,
       "currency": "EUR",
       "sector": "ETF France",
       "pea": true,
@@ -16,7 +16,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 6.053,
+      "currentPrice": 6.041,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 167.7,
+      "currentPrice": 168.16,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -38,7 +38,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 29.67,
+      "currentPrice": 28.82,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -140,14 +140,18 @@
         "price": 166.64
       },
       {
-        "ts": 1782400353437,
-        "price": 168.16
+        "ts": 1782413335744,
+        "price": 168.12
       }
     ],
     "AVIO.MI": [
       {
         "ts": 1782400353438,
         "price": 28.82
+      },
+      {
+        "ts": 1782413335744,
+        "price": 28.48
       }
     ],
     "CAC.PA": [
@@ -244,8 +248,8 @@
         "price": 84.26
       },
       {
-        "ts": 1782400353437,
-        "price": 85.14
+        "ts": 1782413335741,
+        "price": 85.01
       }
     ],
     "DCAM.PA": [
@@ -342,8 +346,8 @@
         "price": 6.039
       },
       {
-        "ts": 1782400353437,
-        "price": 6.041
+        "ts": 1782413335744,
+        "price": 6.024
       }
     ]
   }
