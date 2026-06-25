@@ -32,6 +32,17 @@
       "sector": "ETF Monde",
       "pea": true,
       "id": "1781687395325"
+    },
+    {
+      "ticker": "AVIO.MI",
+      "name": "Avio S.p.A.",
+      "quantity": 3,
+      "purchasePrice": 30.4,
+      "currentPrice": 29.98,
+      "currency": "EUR",
+      "sector": "Espace",
+      "pea": false,
+      "id": "1782381126482"
     }
   ],
   "priceHistory": {
@@ -129,14 +140,18 @@
         "price": 166.64
       },
       {
-        "ts": 1782370456878,
-        "price": 166.68
+        "ts": 1782381137553,
+        "price": 167.7
       }
     ],
     "AVIO.MI": [
       {
         "ts": 1782381126482,
         "price": 29.98
+      },
+      {
+        "ts": 1782381137553,
+        "price": 29.67
       }
     ],
     "CAC.PA": [
@@ -233,8 +248,8 @@
         "price": 84.26
       },
       {
-        "ts": 1782370456882,
-        "price": 84.51
+        "ts": 1782381137553,
+        "price": 84.86
       }
     ],
     "DCAM.PA": [
@@ -331,8 +346,8 @@
         "price": 6.039
       },
       {
-        "ts": 1782370456882,
-        "price": 6.056
+        "ts": 1782381137553,
+        "price": 6.053
       }
     ]
   }
