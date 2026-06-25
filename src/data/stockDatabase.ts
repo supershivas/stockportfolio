@@ -89,6 +89,7 @@ export const STOCK_DATABASE: StockSearchResult[] = [
   // Italie — PEA
   { ticker: 'ENI.MI',  name: 'Eni SpA',              sector: 'Énergie',       currency: 'EUR', currentPrice: 14,   country: '🇮🇹', type: 'Action', pea: true },
   { ticker: 'ENEL.MI', name: 'Enel SpA',             sector: 'Utilities',     currency: 'EUR', currentPrice: 7,    country: '🇮🇹', type: 'Action', pea: true },
+  { ticker: 'AVIO.MI', name: 'Avio SpA',             sector: 'Aérospatiale',  currency: 'EUR', currentPrice: 18,   country: '🇮🇹', type: 'Action', pea: true },
   // ETF PEA-éligibles (UCITS domiciliés UE) — source: Amundi, iShares, Vanguard prospectus
   { ticker: 'DCAM.PA',  name: 'Amundi PEA Monde MSCI World UCITS ETF Acc', sector: 'ETF Monde', currency: 'EUR', currentPrice: 6.06, country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'WPEA.PA',  name: 'iShares MSCI World Swap PEA UCITS ETF', sector: 'ETF Monde',    currency: 'EUR', currentPrice: 6.85, country: '🇫🇷', type: 'ETF', pea: true },
