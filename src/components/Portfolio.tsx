@@ -3,7 +3,7 @@ import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
 import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import StockSearchInput from './StockSearchInput'
-import { StockSearchResult } from '../data/stockDatabase'
+import { StockSearchResult } from './StockSearchInput'
 import { fetchMultipleQuotes, fetchQuote, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
 import { appendPrice, getHistory, PricePoint } from '../services/priceHistory'
 import { syncToCloud } from '../services/cloudBackup'
@@ -221,10 +221,8 @@ export default function Portfolio() {
               ...m.data,
               ticker: stock.ticker,
               name: stock.name,
-              sector: stock.sector,
-              currency: stock.currency,
-              currentPrice: stock.currentPrice,
-              pea: stock.pea,
+              currency: (stock.currency === 'USD' ? 'USD' : 'EUR') as 'USD' | 'EUR',
+              pea: stock.pea ?? false,
             },
           }
         : m
