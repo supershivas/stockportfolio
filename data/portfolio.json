@@ -32,6 +32,17 @@
       "sector": "Espace",
       "pea": false,
       "id": "1782381126482"
+    },
+    {
+      "ticker": "SPYW.DE",
+      "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
+      "quantity": 2,
+      "purchasePrice": 29.31,
+      "currentPrice": 29.3,
+      "currency": "EUR",
+      "sector": "Aristo",
+      "pea": false,
+      "id": "1782462192053"
     }
   ],
   "priceHistory": {
@@ -355,6 +366,12 @@
       {
         "ts": 1782462037925,
         "price": 5.992
+      }
+    ],
+    "OBLI.PA": [
+      {
+        "ts": 1782462391594,
+        "price": 9.749
       }
     ]
   }
