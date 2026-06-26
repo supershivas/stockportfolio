@@ -43,6 +43,17 @@
       "sector": "Aristo",
       "pea": false,
       "id": "1782462192053"
+    },
+    {
+      "ticker": "OBLI.PA",
+      "name": "Amundi PEA Euro Court Terme UCITS ETF",
+      "quantity": 10,
+      "purchasePrice": 9.751,
+      "currentPrice": 9.749,
+      "currency": "EUR",
+      "sector": "",
+      "pea": false,
+      "id": "1782462692690"
     }
   ],
   "priceHistory": {
@@ -144,8 +155,8 @@
         "price": 168.12
       },
       {
-        "ts": 1782462037925,
-        "price": 167.26
+        "ts": 1782462755301,
+        "price": 167.1
       }
     ],
     "AVIO.MI": [
@@ -158,8 +169,8 @@
         "price": 28.48
       },
       {
-        "ts": 1782462037925,
-        "price": 27.78
+        "ts": 1782462755302,
+        "price": 28.07
       }
     ],
     "CAC.PA": [
@@ -264,6 +275,10 @@
       {
         "ts": 1782462192053,
         "price": 29.3
+      },
+      {
+        "ts": 1782462755302,
+        "price": 29.335
       }
     ],
     "DCAM.PA": [
@@ -364,17 +379,13 @@
         "price": 6.024
       },
       {
-        "ts": 1782462037925,
-        "price": 5.992
+        "ts": 1782462755301,
+        "price": 5.987
       }
     ],
     "OBLI.PA": [
       {
-        "ts": 1782462391594,
-        "price": 9.749
-      },
-      {
-        "ts": 1782462692690,
+        "ts": 1782462755302,
         "price": 9.749
       }
     ]
