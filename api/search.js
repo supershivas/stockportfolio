@@ -23,7 +23,8 @@ export default async function handler(req, res) {
     }
 
     const data = await upstream.json()
-    const quotes = (data?.quotes ?? []).filter(q => q.symbol && (q.quoteType === 'EQUITY' || q.quoteType === 'ETF' || q.quoteType === 'MUTUALFUND'))
+    const ALLOWED_TYPES = new Set(['EQUITY', 'ETF', 'MUTUALFUND', 'MONEY_MARKET'])
+    const quotes = (data?.quotes ?? []).filter(q => q.symbol && ALLOWED_TYPES.has(q.quoteType))
 
     const results = quotes.map(q => ({
       ticker: q.symbol,

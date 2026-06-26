@@ -105,6 +105,7 @@ export const STOCK_DATABASE: StockSearchResult[] = [
   { ticker: 'RS2K.PA',  name: 'Amundi Russell 2000 UCITS ETF',         sector: 'ETF USA',      currency: 'EUR', currentPrice: 12,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'PUST.PA',  name: 'Amundi PEA MSCI USA UCITS ETF',         sector: 'ETF USA',      currency: 'EUR', currentPrice: 18,   country: '🇫🇷', type: 'ETF', pea: true },
   { ticker: 'PCEU.PA',  name: 'Amundi PEA MSCI Europe UCITS ETF',      sector: 'ETF Europe',   currency: 'EUR', currentPrice: 21,   country: '🇫🇷', type: 'ETF', pea: true },
+  { ticker: 'OBLI.PA',  name: 'Amundi PEA Euro Court Terme UCITS ETF', sector: 'ETF Obligataire', currency: 'EUR', currentPrice: 100, country: '🇫🇷', type: 'ETF', pea: true },
   // ETF non PEA (domiciliés USA)
   { ticker: 'IWDA.AS',  name: 'iShares Core MSCI World ETF',           sector: 'ETF Monde',    currency: 'EUR', currentPrice: 102,  country: '🇳🇱', type: 'ETF', pea: false },
   { ticker: 'VWCE.DE',  name: 'Vanguard FTSE All-World UCITS ETF',     sector: 'ETF Monde',    currency: 'EUR', currentPrice: 125,  country: '🇩🇪', type: 'ETF', pea: false },
