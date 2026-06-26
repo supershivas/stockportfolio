@@ -5,7 +5,7 @@ import Sources from './Sources'
 import MarketBulletin from './MarketBulletin'
 import {
   LineChart, Line, YAxis, XAxis, ResponsiveContainer, Tooltip,
-  AreaChart, Area, ReferenceLine,
+  AreaChart, Area, ReferenceLine, PieChart, Pie, Cell,
 } from 'recharts'
 import { useLiveQuotes } from '../hooks/useLiveQuotes'
 import { INDEX_TICKERS, fetchEurUsdRate } from '../services/marketData'
@@ -252,6 +252,63 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+
+          {/* Composition pie chart */}
+          {positions.length > 0 && (() => {
+            const PIE_COLORS = ['#6366f1','#4ade80','#fb923c','#f87171','#facc15','#818cf8','#34d399','#f472b6','#38bdf8','#a78bfa']
+            const pieData = positions.map((p) => {
+              const live = portfolioQuotes.get(p.ticker)
+              const price = live ? live.price : p.currentPrice
+              return { name: p.ticker, value: Math.round(toEur(p.quantity * price, p.currency)) }
+            }).filter(d => d.value > 0)
+              .sort((a, b) => b.value - a.value)
+            const total = pieData.reduce((s, d) => s + d.value, 0)
+            return (
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
+                <h2 className="text-base font-semibold text-white mb-1">Composition du Portefeuille</h2>
+                <p className="text-xs text-slate-500 mb-3">Répartition par valeur {hasLiveData ? 'live' : 'actuelle'}</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={52}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {pieData.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
+                      formatter={(v: number) => [fmt(v), '']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Legend */}
+                <div className="space-y-1.5 mt-1">
+                  {pieData.map((d, i) => {
+                    const pct = total > 0 ? (d.value / total) * 100 : 0
+                    return (
+                      <div key={d.name} className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="text-xs text-slate-300 font-medium w-20 shrink-0">{d.name}</span>
+                        <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-slate-700">
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        </div>
+                        <span className="text-xs text-slate-400 w-10 text-right shrink-0">{pct.toFixed(1)}%</span>
+                        <span className="text-xs text-slate-500 w-16 text-right shrink-0">{fmt(d.value)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Top positions */}
           <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
