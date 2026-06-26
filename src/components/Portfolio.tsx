@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
-import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical, History } from 'lucide-react'
+import TransactionHistory from './TransactionHistory'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from './StockSearchInput'
 import { fetchMultipleQuotes, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
@@ -134,6 +135,7 @@ function PriceHistoryChart({ ticker, quantity, purchasePrice, currency, version 
 
 export default function Portfolio() {
   const { positions, addPosition, updatePosition, removePosition, setPositions } = usePortfolioStore()
+  const [tab, setTab] = useState<'positions' | 'history'>('positions')
   const [modal, setModal] = useState<{ type: 'add' | 'edit'; data: Omit<Position, 'id'>; id?: string } | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [autoFilled, setAutoFilled] = useState(false)
@@ -327,6 +329,26 @@ export default function Portfolio() {
           </button>
         </div>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-slate-700">
+        {([
+          { id: 'positions', label: 'Positions', icon: null },
+          { id: 'history',   label: 'Historique des transactions', icon: <History size={13} /> },
+        ] as const).map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              tab === t.id ? 'border-accent text-white' : 'border-transparent text-slate-400 hover:text-white'
+            }`}>
+            {t.icon}{t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'history' && <TransactionHistory />}
+      {tab === 'history' && <div />}
+
+      {tab === 'positions' && <>
 
       {/* Weekly update reminder */}
       {showUpdateReminder && (
@@ -642,6 +664,9 @@ export default function Portfolio() {
           </div>
         </div>
       )}
+
+      {/* end positions tab */}
+      </>}
     </div>
   )
 }

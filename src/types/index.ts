@@ -10,6 +10,19 @@ export interface Position {
   pea?: boolean;
 }
 
+export interface Transaction {
+  id: string;
+  date: string;          // ISO date string
+  type: 'buy' | 'sell' | 'close';
+  ticker: string;
+  name: string;
+  quantity: number;      // shares involved in this operation
+  price: number;         // price per share at time of operation
+  currency: 'USD' | 'EUR';
+  pnlEur?: number;       // realised P&L in EUR (sell/close only)
+  purchasePrice?: number; // original purchase price (for P&L calc)
+}
+
 export type Page = 'dashboard' | 'portfolio' | 'projections' | 'recommendations' | 'indicators' | 'risk' | 'undervalued' | 'dividends';
 
 export type InvestmentHouse = 'Vanguard' | 'BlackRock' | 'Fidelity' | 'JPMorgan' | 'Goldman Sachs' | 'Morgan Stanley';

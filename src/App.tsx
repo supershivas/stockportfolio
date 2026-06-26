@@ -117,6 +117,7 @@ function AppMain() {
   const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
   const positions = usePortfolioStore((s) => s.positions)
   const setPositions = usePortfolioStore((s) => s.setPositions)
+  const setTransactions = usePortfolioStore((s) => s.setTransactions)
   const restoredRef = useRef(false)
 
   useEffect(() => {
@@ -137,6 +138,7 @@ function AppMain() {
     setCloudStatus('syncing')
     restoreFromCloud().then((data) => {
       if (data?.positions && data.positions.length > 0 && positions.length === 0) setPositions(data.positions)
+      if (data?.transactions && data.transactions.length > 0) setTransactions(data.transactions)
       setCloudStatus('ok')
     }).catch(() => setCloudStatus('idle'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
