@@ -5,7 +5,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 5.992,
+      "currentPrice": 5.987,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -16,7 +16,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 167.26,
+      "currentPrice": 167.1,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 27.78,
+      "currentPrice": 28.07,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -36,9 +36,9 @@
     {
       "ticker": "SPYW.DE",
       "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
-      "quantity": 2,
-      "purchasePrice": 29.31,
-      "currentPrice": 29.3,
+      "quantity": 18,
+      "purchasePrice": 29.341,
+      "currentPrice": 29.335,
       "currency": "EUR",
       "sector": "Aristo",
       "pea": false,
@@ -51,7 +51,7 @@
       "purchasePrice": 9.751,
       "currentPrice": 9.749,
       "currency": "EUR",
-      "sector": "",
+      "sector": "ETF Europe",
       "pea": false,
       "id": "1782462692690"
     }
@@ -155,8 +155,8 @@
         "price": 168.12
       },
       {
-        "ts": 1782462755301,
-        "price": 167.1
+        "ts": 1782474712722,
+        "price": 166.6
       }
     ],
     "AVIO.MI": [
@@ -169,8 +169,8 @@
         "price": 28.48
       },
       {
-        "ts": 1782462755302,
-        "price": 28.07
+        "ts": 1782474712723,
+        "price": 28.16
       }
     ],
     "CAC.PA": [
@@ -273,12 +273,8 @@
     ],
     "SPYW.DE": [
       {
-        "ts": 1782462192053,
-        "price": 29.3
-      },
-      {
-        "ts": 1782462755302,
-        "price": 29.335
+        "ts": 1782474712723,
+        "price": 29.28
       }
     ],
     "DCAM.PA": [
@@ -379,15 +375,20 @@
         "price": 6.024
       },
       {
-        "ts": 1782462755301,
-        "price": 5.987
+        "ts": 1782474712722,
+        "price": 5.971
       }
     ],
     "OBLI.PA": [
       {
         "ts": 1782462755302,
         "price": 9.749
+      },
+      {
+        "ts": 1782474712723,
+        "price": 9.749
       }
     ]
-  }
+  },
+  "transactions": []
 }
