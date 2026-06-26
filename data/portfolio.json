@@ -5,7 +5,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 5.987,
+      "currentPrice": 5.971,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -16,29 +16,18 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 167.1,
+      "currentPrice": 166.6,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
       "id": "1782122608618"
     },
     {
-      "ticker": "AVIO.MI",
-      "name": "Avio S.p.A.",
-      "quantity": 3,
-      "purchasePrice": 30.4,
-      "currentPrice": 28.07,
-      "currency": "EUR",
-      "sector": "Espace",
-      "pea": false,
-      "id": "1782381126482"
-    },
-    {
       "ticker": "SPYW.DE",
       "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
       "quantity": 18,
       "purchasePrice": 29.341,
-      "currentPrice": 29.335,
+      "currentPrice": 29.28,
       "currency": "EUR",
       "sector": "Aristo",
       "pea": false,
@@ -54,6 +43,17 @@
       "sector": "ETF Europe",
       "pea": false,
       "id": "1782462692690"
+    },
+    {
+      "ticker": "AVIO.MI",
+      "name": "Avio S.p.A.",
+      "quantity": 3,
+      "purchasePrice": 30.4,
+      "currentPrice": 28.16,
+      "currency": "EUR",
+      "sector": "Espace",
+      "pea": false,
+      "id": "1782381126482"
     }
   ],
   "priceHistory": {
@@ -390,5 +390,17 @@
       }
     ]
   },
-  "transactions": []
+  "transactions": [
+    {
+      "id": "1782467661146-4ug3r",
+      "date": "2026-06-26T09:54:21.146Z",
+      "type": "buy",
+      "ticker": "SPYW.DE",
+      "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
+      "quantity": 16,
+      "price": 29.335,
+      "currency": "EUR",
+      "purchasePrice": 29.31
+    }
+  ]
 }
