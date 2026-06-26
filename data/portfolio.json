@@ -5,7 +5,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 6.024,
+      "currentPrice": 5.992,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -16,7 +16,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 168.12,
+      "currentPrice": 167.26,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 28.48,
+      "currentPrice": 27.78,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -247,6 +247,12 @@
       {
         "ts": 1782413335741,
         "price": 85.01
+      }
+    ],
+    "SPYW.DE": [
+      {
+        "ts": 1782462192053,
+        "price": 29.3
       }
     ],
     "DCAM.PA": [
