@@ -122,7 +122,21 @@ html.light textarea {
 }
 html.light input::placeholder { color: #8E8E93 !important; }
 
-/* Recharts tooltip in light mode */
+/* Recharts tooltips — always use design tokens */
+.recharts-tooltip-wrapper .recharts-default-tooltip,
+.recharts-tooltip-wrapper [class*="recharts-tooltip"] {
+  background: var(--tooltip-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+}
+.recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: var(--text-secondary) !important;
+}
+.recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--text-primary) !important;
+}
+/* Light mode override (tooltip-bg is already white in light, but belt-and-suspenders) */
 html.light .recharts-tooltip-wrapper .recharts-default-tooltip {
   background: #FFFFFF !important;
   border-color: rgba(0,0,0,0.1) !important;

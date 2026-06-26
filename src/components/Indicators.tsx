@@ -123,7 +123,7 @@ function JoseIndexSection() {
               <YAxis domain={[30, 80]} hide />
               <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
               <Tooltip
-                contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: '#f1f5f9' }}
+                contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--card-border)', borderRadius: '6px', fontSize: '11px', padding: '4px 8px', color: 'var(--text-primary)' }}
                 labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                 formatter={(v: number) => [`${v}`, 'JoseIndex2000']}
               />

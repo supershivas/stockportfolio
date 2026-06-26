@@ -87,7 +87,7 @@ export default function Recommendations() {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '12px' }}
+                contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-primary)' }}
                 formatter={(v: number) => [`${v}%`, '']}
               />
               <Legend
@@ -177,7 +177,7 @@ export default function Recommendations() {
             <XAxis dataKey="house" tick={{ fill: '#94a3b8', fontSize: 11 }} tickLine={false} />
             <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} tickLine={false} tickFormatter={(v: number) => `${v}%`} />
             <Tooltip
-              contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', fontSize: '12px' }}
+              contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', fontSize: '12px', color: 'var(--text-primary)' }}
               formatter={(v: number) => [`${v}%`, '']}
             />
             <Legend formatter={(val: string) => <span className="text-slate-300 text-xs">{val}</span>} />
