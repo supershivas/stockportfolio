@@ -4,7 +4,7 @@ import { Position } from '../types'
 import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from './StockSearchInput'
-import { fetchMultipleQuotes, fetchQuote, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
+import { fetchMultipleQuotes, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
 import { appendPrice, getHistory, PricePoint } from '../services/priceHistory'
 import { syncToCloud } from '../services/cloudBackup'
 import {
@@ -228,16 +228,23 @@ export default function Portfolio() {
         : m
     )
     setAutoFilled(true)
-    if (isApiConfigured()) {
-      setFetchingLivePrice(true)
-      const live = await fetchQuote(stock.ticker)
-      if (live) {
-        setModal((m) =>
-          m ? { ...m, data: { ...m.data, currentPrice: live.price } } : m
-        )
+    setFetchingLivePrice(true)
+    try {
+      const res = await fetch(`/api/dividend?ticker=${encodeURIComponent(stock.ticker)}`)
+      if (res.ok) {
+        const d = await res.json()
+        setModal((m) => m ? {
+          ...m,
+          data: {
+            ...m.data,
+            ...(d.price != null ? { currentPrice: d.price } : {}),
+            ...(d.sector ? { sector: d.sector } : {}),
+            ...(d.currency === 'USD' ? { currency: 'USD' as const } : { currency: 'EUR' as const }),
+          },
+        } : m)
       }
-      setFetchingLivePrice(false)
-    }
+    } catch { /* keep defaults */ }
+    setFetchingLivePrice(false)
   }, [])
 
   const handleRefreshPrices = async () => {
