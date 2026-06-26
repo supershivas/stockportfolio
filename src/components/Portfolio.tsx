@@ -147,6 +147,8 @@ export default function Portfolio() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [historyVersion, setHistoryVersion] = useState(0)
   const [toast, setToast] = useState<string | null>(null)
+  const [sortCol, setSortCol] = useState<string | null>(null)
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const dragIdRef = useRef<string | null>(null)
 
@@ -180,6 +182,23 @@ export default function Portfolio() {
   const totalValue = positions.reduce((s, p) => s + toEur(p.quantity * p.currentPrice, p.currency), 0)
   const totalCost = positions.reduce((s, p) => s + toEur(p.quantity * p.purchasePrice, p.currency), 0)
   const totalPnL = totalValue - totalCost
+
+  const handleSort = (col: string) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('desc') }
+  }
+
+  const sortedPositions = sortCol ? [...positions].sort((a, b) => {
+    let av = 0, bv = 0
+    if (sortCol === 'ticker')   { return sortDir === 'asc' ? a.ticker.localeCompare(b.ticker) : b.ticker.localeCompare(a.ticker) }
+    if (sortCol === 'qty')      { av = a.quantity;                                             bv = b.quantity }
+    if (sortCol === 'buy')      { av = toEur(a.purchasePrice, a.currency);                    bv = toEur(b.purchasePrice, b.currency) }
+    if (sortCol === 'current')  { av = toEur(a.currentPrice, a.currency);                     bv = toEur(b.currentPrice, b.currency) }
+    if (sortCol === 'value')    { av = toEur(a.quantity * a.currentPrice, a.currency);         bv = toEur(b.quantity * b.currentPrice, b.currency) }
+    if (sortCol === 'pnl')      { av = toEur(a.quantity * (a.currentPrice - a.purchasePrice), a.currency); bv = toEur(b.quantity * (b.currentPrice - b.purchasePrice), b.currency) }
+    if (sortCol === 'ret')      { av = (a.currentPrice - a.purchasePrice) / a.purchasePrice;  bv = (b.currentPrice - b.purchasePrice) / b.purchasePrice }
+    return sortDir === 'asc' ? av - bv : bv - av
+  }) : positions
 
   const handleSave = () => {
     if (!modal) return
@@ -442,13 +461,39 @@ export default function Portfolio() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-700">
-                {['', 'Ticker', 'Nom', 'Secteur', 'Qté', 'Prix Achat', 'Prix Actuel', 'Valeur', 'P&L', 'Rend.', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">{h}</th>
+                <th className="px-3 py-3 w-8" />
+                {([
+                  { label: 'Ticker',       col: 'ticker'  },
+                  { label: 'Nom',          col: null      },
+                  { label: 'Secteur',      col: null      },
+                  { label: 'Qté',          col: 'qty'     },
+                  { label: 'Prix Achat',   col: 'buy'     },
+                  { label: 'Prix Actuel',  col: 'current' },
+                  { label: 'Valeur',       col: 'value'   },
+                  { label: 'P&L',          col: 'pnl'     },
+                  { label: 'Rend.',        col: 'ret'     },
+                  { label: 'Actions',      col: null      },
+                ] as { label: string; col: string | null }[]).map(({ label, col }) => (
+                  <th key={label}
+                    onClick={col ? () => handleSort(col) : undefined}
+                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap select-none ${
+                      col ? 'cursor-pointer text-slate-400 hover:text-white transition-colors' : 'text-slate-400'
+                    } ${sortCol === col ? 'text-white' : ''}`}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {label}
+                      {col && (
+                        <span className="text-[10px]">
+                          {sortCol === col ? (sortDir === 'desc' ? '↓' : '↑') : '↕'}
+                        </span>
+                      )}
+                    </span>
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {positions.map((p) => {
+              {sortedPositions.map((p) => {
                 const value = toEur(p.quantity * p.currentPrice, p.currency)
                 const pnl = toEur(p.quantity * (p.currentPrice - p.purchasePrice), p.currency)
                 const ret = ((p.currentPrice - p.purchasePrice) / p.purchasePrice) * 100
