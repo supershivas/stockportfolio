@@ -1,59 +1,37 @@
 {
   "positions": [
     {
-      "ticker": "AVIO.MI",
-      "name": "Avio S.p.A.",
-      "quantity": 3,
-      "purchasePrice": 30.4,
-      "currentPrice": 29.43,
-      "currency": "EUR",
-      "sector": "Espace",
-      "pea": false,
-      "id": "1782381126482"
-    },
-    {
       "ticker": "C50.PA",
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 166.86,
+      "currentPrice": 166.74,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
       "id": "1782122608618"
     },
     {
-      "ticker": "OBLI.PA",
-      "name": "Amundi PEA Euro Court Terme UCITS ETF",
-      "quantity": 10,
-      "purchasePrice": 9.751,
-      "currentPrice": 9.753,
+      "ticker": "CAC.PA",
+      "name": "Lyxor CAC 40 UCITS ETF (PEA)",
+      "quantity": 2,
+      "purchasePrice": 82.94,
+      "currentPrice": 84.52,
       "currency": "EUR",
-      "sector": "ETF Europe",
-      "pea": false,
-      "id": "1782462692690"
+      "sector": "ETF France",
+      "pea": true,
+      "id": "1781687181048"
     },
     {
       "ticker": "DCAM.PA",
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 6.017,
+      "currentPrice": 6.003,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
       "id": "1781687395325"
-    },
-    {
-      "ticker": "SPYW.DE",
-      "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
-      "quantity": 18,
-      "purchasePrice": 29.341,
-      "currentPrice": 29.295,
-      "currency": "EUR",
-      "sector": "Aristo",
-      "pea": false,
-      "id": "1782462192053"
     }
   ],
   "priceHistory": {
@@ -157,28 +135,10 @@
       {
         "ts": 1782717410083,
         "price": 84.52
-      }
-    ],
-    "AVIO.MI": [
-      {
-        "ts": 1782400353438,
-        "price": 28.82
       },
       {
-        "ts": 1782413335744,
-        "price": 28.48
-      },
-      {
-        "ts": 1782487188531,
-        "price": 28.91
-      },
-      {
-        "ts": 1782745592632,
-        "price": 29.43
-      },
-      {
-        "ts": 1783282437853,
-        "price": 32.55
+        "ts": 1783285279184,
+        "price": 85.85
       }
     ],
     "C50.PA": [
@@ -287,8 +247,22 @@
         "price": 166.86
       },
       {
-        "ts": 1783282437854,
+        "ts": 1783285279179,
         "price": 171.94
+      }
+    ],
+    "OBLI.PA": [
+      {
+        "ts": 1782487188531,
+        "price": 9.752
+      },
+      {
+        "ts": 1782745592634,
+        "price": 9.753
+      },
+      {
+        "ts": 1783282437855,
+        "price": 9.754
       }
     ],
     "SPYW.DE": [
@@ -307,6 +281,28 @@
       {
         "ts": 1783282437855,
         "price": 29.805
+      }
+    ],
+    "AVIO.MI": [
+      {
+        "ts": 1782400353438,
+        "price": 28.82
+      },
+      {
+        "ts": 1782413335744,
+        "price": 28.48
+      },
+      {
+        "ts": 1782487188531,
+        "price": 28.91
+      },
+      {
+        "ts": 1782745592632,
+        "price": 29.43
+      },
+      {
+        "ts": 1783282437853,
+        "price": 32.55
       }
     ],
     "DCAM.PA": [
@@ -415,22 +411,8 @@
         "price": 6.017
       },
       {
-        "ts": 1783282437855,
+        "ts": 1783285279184,
         "price": 6.105
-      }
-    ],
-    "OBLI.PA": [
-      {
-        "ts": 1782487188531,
-        "price": 9.752
-      },
-      {
-        "ts": 1782745592634,
-        "price": 9.753
-      },
-      {
-        "ts": 1783282437855,
-        "price": 9.754
       }
     ]
   },
