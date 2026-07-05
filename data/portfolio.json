@@ -5,7 +5,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 28.91,
+      "currentPrice": 29.43,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -16,7 +16,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 166.44,
+      "currentPrice": 166.86,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Amundi PEA Euro Court Terme UCITS ETF",
       "quantity": 10,
       "purchasePrice": 9.751,
-      "currentPrice": 9.752,
+      "currentPrice": 9.753,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": false,
@@ -38,7 +38,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 5.993,
+      "currentPrice": 6.017,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -175,6 +175,10 @@
       {
         "ts": 1782745592632,
         "price": 29.43
+      },
+      {
+        "ts": 1783282437853,
+        "price": 32.55
       }
     ],
     "C50.PA": [
@@ -281,6 +285,10 @@
       {
         "ts": 1782745592634,
         "price": 166.86
+      },
+      {
+        "ts": 1783282437854,
+        "price": 171.94
       }
     ],
     "SPYW.DE": [
@@ -295,6 +303,10 @@
       {
         "ts": 1782745592634,
         "price": 29.295
+      },
+      {
+        "ts": 1783282437855,
+        "price": 29.805
       }
     ],
     "DCAM.PA": [
@@ -401,6 +413,10 @@
       {
         "ts": 1782745592634,
         "price": 6.017
+      },
+      {
+        "ts": 1783282437855,
+        "price": 6.105
       }
     ],
     "OBLI.PA": [
@@ -411,6 +427,10 @@
       {
         "ts": 1782745592634,
         "price": 9.753
+      },
+      {
+        "ts": 1783282437855,
+        "price": 9.754
       }
     ]
   },
