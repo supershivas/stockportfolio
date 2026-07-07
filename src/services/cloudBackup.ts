@@ -17,20 +17,48 @@ export function setLastSyncedAt(ts: number): void {
   localStorage.setItem(LAST_SYNCED_KEY, String(ts))
 }
 
-export async function syncToCloud(positions: Position[], transactions: Transaction[] = []): Promise<void> {
+function mergeTransactions(cloud: Transaction[], local: Transaction[]): Transaction[] {
+  const byId = new Map<string, Transaction>()
+  cloud.forEach((t) => byId.set(t.id, t))
+  local.forEach((t) => byId.set(t.id, t))
+  return Array.from(byId.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+// Transactions are an append-only log, not a point-in-time snapshot like
+// positions — two devices can each record a new transaction between one
+// hydrate and the next. A blind overwrite would let whichever device syncs
+// last silently erase the other's entries. So on every push, pull the
+// current cloud transactions and merge (union by id) before writing back.
+export async function syncToCloud(
+  positions: Position[],
+  transactions: Transaction[] = [],
+  onMergedTransactions?: (merged: Transaction[]) => void,
+): Promise<void> {
   if (syncTimer) clearTimeout(syncTimer)
   syncTimer = setTimeout(async () => {
     try {
+      let merged = transactions
+      try {
+        const res = await fetch('/api/portfolio')
+        if (res.ok) {
+          const cloud = await res.json()
+          if (Array.isArray(cloud?.transactions) && cloud.transactions.length > 0) {
+            merged = mergeTransactions(cloud.transactions, transactions)
+          }
+        }
+      } catch { /* fall back to pushing local transactions as-is */ }
+
       const priceHistory = getAllHistory()
       const now = Date.now()
       await fetch('/api/portfolio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ positions, priceHistory, transactions }),
+        body: JSON.stringify({ positions, priceHistory, transactions: merged }),
       })
       // Record locally so a later reload on this device knows its data is
       // at least this fresh, and won't be needlessly clobbered by the cloud.
       setLastSyncedAt(now)
+      if (merged.length !== transactions.length) onMergedTransactions?.(merged)
     } catch { /* silent */ }
   }, 3000)
 }

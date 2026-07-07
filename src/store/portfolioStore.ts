@@ -36,7 +36,7 @@ export const usePortfolioStore = create<PortfolioState>()(
         }
         const positions = [...s.positions, position]
         const transactions = [tx, ...s.transactions]
-        syncToCloud(positions, transactions)
+        syncToCloud(positions, transactions, (merged) => set({ transactions: merged }))
         return { positions, transactions }
       }),
 
@@ -65,7 +65,7 @@ export const usePortfolioStore = create<PortfolioState>()(
           transactions = [tx, ...s.transactions]
         }
 
-        syncToCloud(positions, transactions)
+        syncToCloud(positions, transactions, (merged) => set({ transactions: merged }))
         return { positions, transactions }
       }),
 
@@ -91,14 +91,14 @@ export const usePortfolioStore = create<PortfolioState>()(
           transactions = [tx, ...s.transactions]
         }
 
-        syncToCloud(positions, transactions)
+        syncToCloud(positions, transactions, (merged) => set({ transactions: merged }))
         return { positions, transactions }
       }),
 
       setPositions: (positions) => {
         const { transactions } = get()
         set({ positions })
-        syncToCloud(positions, transactions)
+        syncToCloud(positions, transactions, (merged) => set({ transactions: merged }))
       },
 
       setTransactions: (transactions) => set({ transactions }),
