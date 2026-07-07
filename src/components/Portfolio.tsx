@@ -323,25 +323,25 @@ export default function Portfolio() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Mon Portfolio</h1>
           <p className="text-slate-400 text-sm mt-1">Ajoutez vos titres via la recherche (actions, ETF, PEA), suivez prix d'achat, valeur actuelle et P&L en euros. Cliquez sur une ligne pour voir l'historique des cours.</p>
         </div>
-        <div className="flex items-center gap-3">
-          {refreshMsg && <span className="text-xs text-slate-400">{refreshMsg}</span>}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {refreshMsg && <span className="text-xs text-slate-400 hidden sm:inline">{refreshMsg}</span>}
           <button
             onClick={handleRefreshPrices}
             disabled={refreshing}
             title="Mettre à jour les cours"
-            className="flex items-center gap-2 border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
           >
             <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
             Actualiser
           </button>
           <button
             onClick={() => { setModal({ type: 'add', data: { ...EMPTY } }); setAutoFilled(false) }}
-            className="flex items-center gap-2 bg-accent hover:bg-accent-hover px-4 py-2 rounded-lg text-sm font-medium transition-colors" style={{ color: "#ffffff" }}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover px-4 py-2 rounded-lg text-sm font-medium transition-colors" style={{ color: "#ffffff" }}
           >
             <Plus size={16} />
             Ajouter
@@ -350,16 +350,18 @@ export default function Portfolio() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-slate-700">
+      <div className="flex gap-1 border-b border-slate-700 overflow-x-auto">
         {([
-          { id: 'positions', label: 'Positions', icon: null },
-          { id: 'history',   label: 'Historique des transactions', icon: <History size={13} /> },
+          { id: 'positions', label: 'Positions', labelMobile: 'Positions', icon: null },
+          { id: 'history',   label: 'Historique des transactions', labelMobile: 'Historique', icon: <History size={13} /> },
         ] as const).map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap shrink-0 ${
               tab === t.id ? 'border-accent text-white' : 'border-transparent text-slate-400 hover:text-white'
             }`}>
-            {t.icon}{t.label}
+            {t.icon}
+            <span className="sm:hidden">{t.labelMobile}</span>
+            <span className="hidden sm:inline">{t.label}</span>
           </button>
         ))}
       </div>

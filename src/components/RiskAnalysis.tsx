@@ -108,7 +108,7 @@ export default function RiskAnalysis() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Analyse de Risque</h1>
           <p className="text-slate-400 text-sm mt-1">Beta, volatilité, Sharpe et drawdown mesurent le risque de votre portefeuille. Un Beta &gt; 1 signifie que vous amplifiez les mouvements du marché. La matrice de corrélation montre si vos titres évoluent ensemble (risque de concentration).</p>
@@ -116,7 +116,7 @@ export default function RiskAnalysis() {
         <button
           onClick={refresh}
           disabled={loading}
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0"
         >
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           {lastUpdated ? `Temps réel · ${lastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}` : 'Actualiser'}

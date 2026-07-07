@@ -307,18 +307,20 @@ export default function UndervaluedStocks() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-green-600/20 border border-green-500/30 flex items-center justify-center">
-          <TrendingDown size={20} className="text-green-400" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Valeurs Sous-Évaluées</h1>
-          <p className="text-slate-400 text-sm">Screening de 20 valeurs sur la base de critères fondamentaux : P/E, ROE, marges, dette. Un score A indique une action potentiellement sous-évaluée selon les modèles Graham et DCF. Ce n'est pas un conseil en investissement.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-lg bg-green-600/20 border border-green-500/30 flex items-center justify-center shrink-0">
+            <TrendingDown size={20} className="text-green-400" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-white">Valeurs Sous-Évaluées</h1>
+            <p className="text-slate-400 text-sm">Screening de 20 valeurs sur la base de critères fondamentaux : P/E, ROE, marges, dette. Un score A indique une action potentiellement sous-évaluée selon les modèles Graham et DCF. Ce n'est pas un conseil en investissement.</p>
+          </div>
         </div>
         <button
           onClick={refreshLive}
           disabled={liveLoading}
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0 sm:ml-auto"
         >
           <RefreshCw size={12} className={liveLoading ? 'animate-spin' : ''} />
           {lastUpdated

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield,
-  TrendingDown, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud,
+  TrendingDown, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud, Menu,
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
 import JosePublic from './components/JosePublic'
@@ -178,7 +178,10 @@ function AppMain() {
         className={`fixed lg:static inset-y-0 left-0 z-30 w-[264px] flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+        <div
+          className="flex items-center justify-between px-4 py-4"
+          style={{ borderBottom: '1px solid var(--sidebar-border)', paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}
+        >
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent)' }}>
               <TrendingUp size={15} style={{ color: '#ffffff' }} />
@@ -279,25 +282,34 @@ function AppMain() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-16 lg:pb-6">
+        <main
+          className="flex-1 overflow-y-auto p-4 lg:p-6"
+          style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
+        >
           {renderPage()}
         </main>
 
         {/* Bottom nav — mobile only */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch py-2" style={{ background: 'var(--sidebar-bg)', borderTop: '1px solid var(--sidebar-border)' }}>
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch py-2"
+          style={{
+            background: 'var(--sidebar-bg)',
+            borderTop: '1px solid var(--sidebar-border)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
           {([
-            { id: 'dashboard' as Page, label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-            { id: 'portfolio' as Page, label: 'Positions', icon: <Briefcase size={20} /> },
-            { id: 'dividends' as Page, label: 'Dividendes', icon: <DollarSign size={20} /> },
-            { id: 'projections' as Page, label: 'Projections', icon: <TrendingUp size={20} /> },
-            { id: 'indicators' as Page, label: 'Plus', icon: <BarChart3 size={20} /> },
+            { id: 'dashboard' as Page,   label: 'Dashboard',  icon: <LayoutDashboard size={20} /> },
+            { id: 'portfolio' as Page,   label: 'Positions',  icon: <Briefcase size={20} /> },
+            { id: 'dividends' as Page,   label: 'Dividendes', icon: <DollarSign size={20} /> },
+            { id: 'projections' as Page, label: 'Projections',icon: <TrendingUp size={20} /> },
           ] as { id: Page; label: string; icon: React.ReactNode }[]).map((item) => {
             const active = page === item.id
             return (
               <button
                 key={item.id}
                 onClick={() => setPage(item.id)}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5"
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1"
                 style={{ color: active ? 'var(--accent)' : 'var(--sidebar-muted)' }}
               >
                 {item.icon}
@@ -305,6 +317,16 @@ function AppMain() {
               </button>
             )
           })}
+          {/* Opens the full sidebar drawer — gives access to Indicateurs, Recommandations,
+              Sous-Évaluées and Risque, which don't fit in the 5-slot bottom nav */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1"
+            style={{ color: ['indicators', 'recommendations', 'undervalued', 'risk'].includes(page) ? 'var(--accent)' : 'var(--sidebar-muted)' }}
+          >
+            <Menu size={20} />
+            <span className="text-[10px]">Menu</span>
+          </button>
         </nav>
       </div>
     </div>
