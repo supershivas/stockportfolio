@@ -7,7 +7,7 @@ import ApiSettings from './components/ApiSettings'
 import JosePublic from './components/JosePublic'
 import Login, { isAuthenticated } from './components/Login'
 import { isApiConfigured } from './services/marketData'
-import { restoreFromCloud } from './services/cloudBackup'
+import { restoreFromCloud, getLastSyncedAt, setLastSyncedAt } from './services/cloudBackup'
 import { usePortfolioStore } from './store/portfolioStore'
 import Dashboard from './components/Dashboard'
 import Portfolio from './components/Portfolio'
@@ -116,8 +116,7 @@ function AppMain() {
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
   const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
   const positions = usePortfolioStore((s) => s.positions)
-  const setPositions = usePortfolioStore((s) => s.setPositions)
-  const setTransactions = usePortfolioStore((s) => s.setTransactions)
+  const hydrateFromCloud = usePortfolioStore((s) => s.hydrateFromCloud)
   const restoredRef = useRef(false)
 
   useEffect(() => {
@@ -130,15 +129,23 @@ function AppMain() {
     return () => clearInterval(interval)
   }, [])
 
-  // Always restore from GitHub on startup to get price history.
-  // Positions are only overwritten if localStorage is empty.
+  // Cloud (GitHub) is the source of truth across devices/browsers, since each
+  // browser's localStorage is an isolated island. On startup, pull cloud data
+  // whenever it's newer than what this device last pushed — this is what lets
+  // an edit made in Firefox show up in Chrome or on the iPhone. Local wins only
+  // if this device has unsynced local changes newer than the cloud snapshot.
   useEffect(() => {
     if (restoredRef.current) return
     restoredRef.current = true
     setCloudStatus('syncing')
     restoreFromCloud().then((data) => {
-      if (data?.positions && data.positions.length > 0 && positions.length === 0) setPositions(data.positions)
-      if (data?.transactions && data.transactions.length > 0) setTransactions(data.transactions)
+      const lastSyncedAt = getLastSyncedAt()
+      const cloudIsNewer = (data?.updatedAt ?? 0) > lastSyncedAt
+      const localIsEmpty = positions.length === 0
+      if (data?.positions && (cloudIsNewer || localIsEmpty)) {
+        hydrateFromCloud(data.positions, data.transactions ?? [])
+        if (data.updatedAt) setLastSyncedAt(data.updatedAt)
+      }
       setCloudStatus('ok')
     }).catch(() => setCloudStatus('idle'))
   // eslint-disable-next-line react-hooks/exhaustive-deps

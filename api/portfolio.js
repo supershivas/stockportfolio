@@ -35,6 +35,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+      body.updatedAt = Date.now()
       const encoded = Buffer.from(JSON.stringify(body, null, 2)).toString('base64')
 
       // Get current SHA (needed for update)

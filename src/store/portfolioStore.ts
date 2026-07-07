@@ -11,6 +11,7 @@ interface PortfolioState {
   removePosition: (id: string) => void;
   setPositions: (positions: Position[]) => void;
   setTransactions: (transactions: Transaction[]) => void;
+  hydrateFromCloud: (positions: Position[], transactions: Transaction[]) => void;
 }
 
 function makeId() { return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }
@@ -101,6 +102,12 @@ export const usePortfolioStore = create<PortfolioState>()(
       },
 
       setTransactions: (transactions) => set({ transactions }),
+
+      // Adopt a cloud snapshot without re-pushing it — this is a restore, not
+      // a local mutation. Re-syncing here would just echo back the exact
+      // data we received, wasting a GitHub commit and a race with any
+      // near-simultaneous write from another device.
+      hydrateFromCloud: (positions, transactions) => set({ positions, transactions }),
     }),
     { name: 'portfolio-storage' }
   )
