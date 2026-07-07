@@ -5,7 +5,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 32.55,
+      "currentPrice": 34.62,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -16,7 +16,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 171.94,
+      "currentPrice": 171.46,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Amundi PEA Euro Court Terme UCITS ETF",
       "quantity": 10,
       "purchasePrice": 9.751,
-      "currentPrice": 9.754,
+      "currentPrice": 9.756,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": false,
@@ -38,7 +38,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 6.105,
+      "currentPrice": 6.124,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -49,7 +49,7 @@
       "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
       "quantity": 18,
       "purchasePrice": 29.341,
-      "currentPrice": 29.805,
+      "currentPrice": 29.89,
       "currency": "EUR",
       "sector": "Aristo",
       "pea": false,
@@ -277,8 +277,8 @@
         "price": 171.94
       },
       {
-        "ts": 1783413441827,
-        "price": 171.46
+        "ts": 1783433967823,
+        "price": 170.18
       }
     ],
     "SPYW.DE": [
@@ -299,8 +299,8 @@
         "price": 29.805
       },
       {
-        "ts": 1783413441827,
-        "price": 29.89
+        "ts": 1783433967824,
+        "price": 29.84
       }
     ],
     "AVIO.MI": [
@@ -325,8 +325,8 @@
         "price": 32.55
       },
       {
-        "ts": 1783413441827,
-        "price": 34.62
+        "ts": 1783433967823,
+        "price": 33.87
       }
     ],
     "OBLI.PA": [
@@ -343,8 +343,8 @@
         "price": 9.754
       },
       {
-        "ts": 1783413441827,
-        "price": 9.756
+        "ts": 1783433967823,
+        "price": 9.755
       }
     ],
     "DCAM.PA": [
@@ -457,11 +457,11 @@
         "price": 6.105
       },
       {
-        "ts": 1783413441827,
-        "price": 6.124
+        "ts": 1783433967824,
+        "price": 6.109
       }
     ]
   },
   "transactions": [],
-  "updatedAt": 1783413444937
+  "updatedAt": 1783433971528
 }
