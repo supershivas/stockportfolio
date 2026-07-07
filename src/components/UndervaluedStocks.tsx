@@ -134,13 +134,12 @@ interface ExpandedRowProps {
   score: ValuationScore
 }
 
-function ExpandedRow({ stock, score }: ExpandedRowProps) {
+function ExpandedDetail({ stock, score }: ExpandedRowProps) {
   const barColor = gradeBarColor(score.grade)
   const dcfDiscount = ((stock.dcfValue - stock.currentPrice) / stock.currentPrice * 100)
   const grahamDiscount = ((stock.grahamValue - stock.currentPrice) / stock.currentPrice * 100)
 
   return (
-    <td colSpan={12} className="px-4 pb-4 pt-0 bg-slate-800/50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
         {/* Score breakdown */}
         <div className="rounded-lg bg-slate-800 border border-slate-700 p-4">
@@ -240,7 +239,89 @@ function ExpandedRow({ stock, score }: ExpandedRowProps) {
           </div>
         </div>
       </div>
+  )
+}
+
+function ExpandedRow({ stock, score }: ExpandedRowProps) {
+  return (
+    <td colSpan={12} className="px-4 pb-4 pt-0 bg-slate-800/50">
+      <ExpandedDetail stock={stock} score={score} />
     </td>
+  )
+}
+
+function MobileStockCard({ stock, score, isExpanded, onToggle }: ExpandedRowProps & { isExpanded: boolean; onToggle: () => void }) {
+  const peBelowSector = stock.pe < stock.sectorPE
+  const grahamDiscount = ((stock.grahamValue - stock.currentPrice) / stock.currentPrice * 100)
+
+  return (
+    <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+      <button onClick={onToggle} className="w-full text-left px-4 py-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-accent/80">{stock.ticker.slice(0, 2)}</span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-white">{stock.ticker}</span>
+                <span>{COUNTRY_FLAGS[stock.country] || ''}</span>
+              </div>
+              <div className="text-xs text-slate-400 truncate">{stock.name}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col items-center">
+              <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${gradeStyle(score.grade)}`}>{score.grade}</span>
+              <span className="text-[10px] text-slate-500 mt-0.5">{score.total}/100</span>
+            </div>
+            {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-700/60">
+          <div>
+            <div className="text-[10px] text-slate-500">Prix / Cible</div>
+            <div className="text-xs font-medium text-white">{stock.currentPrice.toFixed(2)}</div>
+            <div className="text-[10px] text-slate-500">→ {stock.analystTarget.toFixed(2)}</div>
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-500">P/E vs Sect.</div>
+            <div className={`text-xs font-medium ${peBelowSector ? 'text-green-400' : 'text-red-400'}`}>{stock.pe.toFixed(1)}x</div>
+            <div className="text-[10px] text-slate-500">{stock.sectorPE.toFixed(1)}x</div>
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-500">ROE</div>
+            <div className={`text-xs font-medium ${stock.roe >= 20 ? 'text-green-400' : stock.roe >= 10 ? 'text-slate-300' : 'text-red-400'}`}>{stock.roe.toFixed(1)}%</div>
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-500">Upside</div>
+            <div className={`text-xs font-medium ${stock.analystUpside >= 20 ? 'text-green-400' : stock.analystUpside >= 10 ? 'text-slate-300' : 'text-red-400'}`}>+{stock.analystUpside.toFixed(1)}%</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          <div>
+            <div className="text-[10px] text-slate-500">Dividende</div>
+            <div className={`text-xs font-medium ${stock.dividendYield >= 4 ? 'text-green-400' : 'text-slate-300'}`}>{stock.dividendYield.toFixed(1)}%</div>
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-500">Marge Nette</div>
+            <div className={`text-xs font-medium ${stock.netMargin >= 20 ? 'text-green-400' : stock.netMargin >= 10 ? 'text-slate-300' : 'text-orange-400'}`}>{stock.netMargin.toFixed(1)}%</div>
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-500">Graham</div>
+            <div className={`text-xs font-medium ${grahamDiscount > 0 ? 'text-green-400' : 'text-red-400'}`}>{grahamDiscount > 0 ? '+' : ''}{grahamDiscount.toFixed(0)}%</div>
+          </div>
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="px-4 pb-4 border-t border-slate-700/60 bg-slate-800/50">
+          <ExpandedDetail stock={stock} score={score} />
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -421,8 +502,26 @@ export default function UndervaluedStocks() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="lg:hidden space-y-3">
+        {filtered.map(({ stock, score }) => (
+          <MobileStockCard
+            key={stock.ticker}
+            stock={stock}
+            score={score}
+            isExpanded={expandedTicker === stock.ticker}
+            onToggle={() => toggleExpand(stock.ticker)}
+          />
+        ))}
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-slate-500 rounded-xl border border-slate-700 bg-slate-800">
+            Aucune action correspondant aux filtres sélectionnés.
+          </div>
+        )}
+      </div>
+
+      {/* Table — desktop */}
+      <div className="hidden lg:block rounded-xl border border-slate-700 bg-slate-800 overflow-x-auto">
         <table className="w-full text-sm min-w-[1100px]">
           <thead>
             <tr className="border-b border-slate-700">
