@@ -15,8 +15,13 @@ export function useLiveQuotes(tickers: string[], autoFetch = true): UseLiveQuote
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [configured, setConfigured] = useState(isApiConfigured())
 
+  // fetchQuote() already falls back to Yahoo Finance (no key required) when
+  // no Finnhub key is set — so fetching must never be gated on isApiConfigured.
+  // That flag only reflects whether a Finnhub key is present (higher rate
+  // limits, real news feed); it says nothing about whether live prices are
+  // available, which they always are via the Yahoo fallback.
   const refresh = useCallback(async () => {
-    if (!isApiConfigured() || tickers.length === 0) return
+    if (tickers.length === 0) return
     setLoading(true)
     const results = await fetchMultipleQuotes(tickers)
     setQuotes(results)
@@ -26,7 +31,7 @@ export function useLiveQuotes(tickers: string[], autoFetch = true): UseLiveQuote
 
   useEffect(() => {
     setConfigured(isApiConfigured())
-    if (autoFetch && isApiConfigured()) {
+    if (autoFetch) {
       refresh()
     }
   }, [refresh, autoFetch])

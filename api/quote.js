@@ -2,7 +2,7 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const HOSTS = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com']
 
 export default async function handler(req, res) {
-  const { ticker } = req.query
+  const { ticker, range, interval } = req.query
   if (!ticker) return res.status(400).json({ error: 'ticker required' })
 
   const headers = {
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   for (const host of HOSTS) {
     try {
-      const url = `${host}/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`
+      const url = `${host}/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval || '1d'}&range=${range || '1d'}`
       const r = await fetch(url, { headers })
       if (!r.ok) continue
       const data = await r.json()

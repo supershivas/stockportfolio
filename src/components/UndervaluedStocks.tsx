@@ -1,9 +1,28 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ChevronDown, ChevronUp, Search, TrendingDown, Info, RefreshCw } from 'lucide-react'
 import { stocksData, StockFundamentals } from '../data/fundamentals'
 import { calculateValuationScore, ValuationScore } from '../utils/valuationScore'
 import Sources from './Sources'
 import { useLiveQuotes } from '../hooks/useLiveQuotes'
+
+// Fields fetched live from Yahoo Finance quoteSummary via /api/fundamentals —
+// only present ones (Yahoo doesn't cover every ticker/field) override the
+// static reference dataset, field by field.
+type LiveFundamentals = Partial<Pick<StockFundamentals,
+  'currentPrice' | 'marketCap' | 'pe' | 'forwardPE' | 'pb' | 'ps' | 'ev_ebitda' |
+  'roe' | 'roa' | 'grossMargin' | 'operatingMargin' | 'netMargin' |
+  'revenueGrowthYoY' | 'epsGrowthYoY' | 'debtToEquity' | 'currentRatio' |
+  'dividendYield' | 'payoutRatio' | 'analystTarget' | 'analystUpside' |
+  'numAnalysts' | 'grahamValue' | 'dcfValue'
+>>
+
+const LIVE_FIELDS = [
+  'currentPrice', 'marketCap', 'pe', 'forwardPE', 'pb', 'ps', 'ev_ebitda',
+  'roe', 'roa', 'grossMargin', 'operatingMargin', 'netMargin',
+  'revenueGrowthYoY', 'epsGrowthYoY', 'debtToEquity', 'currentRatio',
+  'dividendYield', 'payoutRatio', 'analystTarget', 'analystUpside',
+  'numAnalysts', 'grahamValue', 'dcfValue',
+] as const
 
 const COUNTRY_FLAGS: Record<string, string> = {
   France: '🇫🇷',
@@ -337,11 +356,64 @@ export default function UndervaluedStocks() {
   const tickers = useMemo(() => stocksData.map((s) => s.ticker), [])
   const { quotes: liveQuotes, loading: liveLoading, refresh: refreshLive, lastUpdated } = useLiveQuotes(tickers)
 
-  // Merge live prices into stocksData
-  const liveStocks = useMemo(() => stocksData.map((s) => {
-    const live = liveQuotes.get(s.ticker)
-    return live ? { ...s, currentPrice: live.price } : s
-  }), [liveQuotes])
+  const [fundamentals, setFundamentals] = useState<Record<string, LiveFundamentals>>({})
+  const [fundamentalsLoading, setFundamentalsLoading] = useState(false)
+
+  const loadFundamentals = useCallback(async () => {
+    setFundamentalsLoading(true)
+    const entries = await Promise.all(tickers.map(async (t) => {
+      try {
+        const res = await fetch(`/api/fundamentals?ticker=${encodeURIComponent(t)}`)
+        if (!res.ok) return null
+        const d = await res.json()
+        return [t, d] as const
+      } catch {
+        return null
+      }
+    }))
+    const map: Record<string, LiveFundamentals> = {}
+    entries.forEach((e) => { if (e) map[e[0]] = e[1] })
+    setFundamentals(map)
+    setFundamentalsLoading(false)
+  }, [tickers])
+
+  useEffect(() => { loadFundamentals() }, [loadFundamentals])
+
+  const refreshAll = useCallback(() => {
+    refreshLive()
+    loadFundamentals()
+  }, [refreshLive, loadFundamentals])
+
+  // Merge live price + fundamentals into the static reference dataset —
+  // field by field, only where Yahoo actually returned a value. Sector
+  // averages (sectorPE/sectorPB) are then recomputed from this merged set,
+  // so the "vs sector" comparison is a real average of our live peer group
+  // rather than a hardcoded guess.
+  const liveStocks = useMemo(() => {
+    const merged = stocksData.map((s) => {
+      const live = liveQuotes.get(s.ticker)
+      const f = fundamentals[s.ticker]
+      const out: StockFundamentals = { ...s }
+      if (live) out.currentPrice = live.price
+      if (f) {
+        LIVE_FIELDS.forEach((key) => {
+          const v = f[key]
+          if (v != null) (out as unknown as Record<string, number>)[key] = v
+        })
+      }
+      return out
+    })
+
+    const bySector: Record<string, { peSum: number; pbSum: number; n: number }> = {}
+    merged.forEach((s) => {
+      const g = (bySector[s.sector] ??= { peSum: 0, pbSum: 0, n: 0 })
+      g.peSum += s.pe; g.pbSum += s.pb; g.n += 1
+    })
+    return merged.map((s) => {
+      const g = bySector[s.sector]
+      return g && g.n > 0 ? { ...s, sectorPE: g.peSum / g.n, sectorPB: g.pbSum / g.n } : s
+    })
+  }, [liveQuotes, fundamentals])
 
   const scored = useMemo(
     () => liveStocks.map((s) => ({ stock: s, score: calculateValuationScore(s) })),
@@ -399,14 +471,14 @@ export default function UndervaluedStocks() {
           </div>
         </div>
         <button
-          onClick={refreshLive}
-          disabled={liveLoading}
+          onClick={refreshAll}
+          disabled={liveLoading || fundamentalsLoading}
           className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0 sm:ml-auto"
         >
-          <RefreshCw size={12} className={liveLoading ? 'animate-spin' : ''} />
+          <RefreshCw size={12} className={(liveLoading || fundamentalsLoading) ? 'animate-spin' : ''} />
           {lastUpdated
-            ? `Temps réel · ${lastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}`
-            : liveLoading ? 'Chargement…' : 'Actualiser cours'}
+            ? `Cours & fondamentaux · ${lastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}`
+            : (liveLoading || fundamentalsLoading) ? 'Chargement…' : 'Actualiser'}
         </button>
       </div>
 
@@ -684,8 +756,8 @@ export default function UndervaluedStocks() {
           <strong className="text-slate-400"> Croissance</strong> : mesure la progression du BPA sur 1 an et 5 ans (TCAM) ainsi que la croissance du chiffre d'affaires.
           <strong className="text-slate-400"> Santé Financière</strong> : apprécie l'endettement, la liquidité et la couverture des intérêts.
           La <strong className="text-slate-400">Valeur Graham</strong> correspond à √(22,5 × BPA × VCA), méthode classique de l'investissement dans la valeur.
-          Le <strong className="text-slate-400">DCF</strong> est une estimation simplifiée basée sur les flux de trésorerie projetés à 10 ans.
-          Ces données sont <em>simulées à des fins éducatives</em> et ne constituent pas un conseil en investissement.
+          Le <strong className="text-slate-400">DCF</strong> est une estimation simplifiée basée sur les flux de trésorerie projetés à 10 ans (croissance 5%, actualisation 9%).
+          Les métriques (P/E, ROE, marges, dette, cibles analystes) proviennent de Yahoo Finance en temps réel ; en l'absence de donnée live pour un champ, une valeur de référence est utilisée. Ces données sont fournies à titre informatif et <em>ne constituent pas un conseil en investissement</em>.
         </p>
       </div>
       <Sources sources={[

@@ -205,7 +205,6 @@ const STATUS_STYLES = {
 }
 
 export default function Indicators() {
-  const now = new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })
   const indicatorSymbols = INDICATOR_TICKERS.map((t) => t.symbol)
   const { quotes: liveIndicators, loading, refresh, lastUpdated } = useLiveQuotes(indicatorSymbols)
 
@@ -214,7 +213,7 @@ export default function Indicators() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-white">Indicateurs de Marché</h1>
-          <p className="text-slate-400 text-sm mt-1">Le contexte macro influence directement votre portefeuille. VIX élevé = stress de marché, taux Fed en hausse = pression sur les actions growth, or en hausse = signal défensif. Connectez Finnhub pour les données en direct.</p>
+          <p className="text-slate-400 text-sm mt-1">Le contexte macro influence directement votre portefeuille. VIX élevé = stress de marché, taux Fed en hausse = pression sur les actions growth, or en hausse = signal défensif. VIX, or, dollar et taux 10 ans sont en direct (Yahoo Finance) ; P/E, CPI et chômage sont des publications officielles périodiques (voir sources en bas de page).</p>
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (
@@ -231,19 +230,15 @@ export default function Indicators() {
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
             Actualiser
           </button>
-          {!liveIndicators.size && (
-            <div className="text-xs text-slate-500 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
-              Données simulées · <span className="text-slate-400">{now}</span>
-            </div>
-          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {marketIndicators.map((ind) => {
-          // Map static indicator names to live Finnhub symbols
+          // Map static indicator names to live Yahoo Finance symbols (fetched
+          // via the Finnhub-or-Yahoo-fallback chain — works with no API key).
           const liveSymbolMap: Record<string, string> = {
-            'VIX': '^VIX', 'Or (Gold)': 'GC=F', 'Dollar Index': 'DX-Y.NYB',
+            'VIX': '^VIX', 'Or (Gold)': 'GC=F', 'Dollar Index': 'DX-Y.NYB', 'Taux US 10 ans': '^TNX',
           }
           const liveSymbol = liveSymbolMap[ind.name]
           const liveData = liveSymbol ? liveIndicators.get(liveSymbol) : undefined
@@ -272,6 +267,9 @@ export default function Indicators() {
                     <span className="text-sm font-normal text-slate-400">{ind.unit}</span>
                     {liveData && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" title="Temps réel" />}
                   </div>
+                  {!liveData && (
+                    <div className="text-[10px] text-slate-500 mt-0.5">Publication officielle périodique</div>
+                  )}
                 </div>
                 <div className={`w-2 h-2 rounded-full mt-1 ${styles.dot}`} />
               </div>

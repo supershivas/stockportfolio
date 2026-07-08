@@ -11,13 +11,6 @@ import { useLiveQuotes } from '../hooks/useLiveQuotes'
 import { INDEX_TICKERS, fetchEurUsdRate } from '../services/marketData'
 import { getHistory } from '../services/priceHistory'
 
-const SPARK_SHAPES: Record<string, number[]> = {
-  '^GSPC':   [0.92, 0.94, 0.93, 0.96, 0.97, 0.96, 0.98, 1],
-  '^IXIC':   [0.91, 0.93, 0.92, 0.95, 0.97, 0.96, 0.99, 1],
-  '^FCHI':   [1.01, 1.00, 0.99, 0.98, 0.99, 1.00, 0.99, 1],
-  'IWDA.AS': [0.93, 0.94, 0.93, 0.96, 0.97, 0.97, 0.99, 1],
-}
-
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
 }
@@ -34,6 +27,27 @@ export default function Dashboard() {
   const portfolioTickers = positions.map((p) => p.ticker)
   const { quotes: indexQuotes, loading: indexLoading, refresh: refreshIndexes } = useLiveQuotes(indexSymbols)
   const { quotes: portfolioQuotes, refresh: refreshPortfolio } = useLiveQuotes(portfolioTickers)
+
+  // Real 1-month daily history per index, for the sparklines below — replaces
+  // the previous hardcoded shape ratios (fake trend lines around a real price).
+  const [indexHistory, setIndexHistory] = useState<Record<string, { ts: number; price: number }[]>>({})
+  useEffect(() => {
+    indexSymbols.forEach(async (symbol) => {
+      try {
+        const res = await fetch(`/api/quote?ticker=${encodeURIComponent(symbol)}&range=1mo&interval=1d`)
+        if (!res.ok) return
+        const data = await res.json()
+        const result = data?.chart?.result?.[0]
+        const ts: number[] = result?.timestamp ?? []
+        const closes: number[] = result?.indicators?.quote?.[0]?.close ?? []
+        const points = ts
+          .map((t, i) => ({ ts: t * 1000, price: closes[i] }))
+          .filter((p) => typeof p.price === 'number')
+        if (points.length > 0) setIndexHistory((prev) => ({ ...prev, [symbol]: points }))
+      } catch { /* sparkline stays empty for this index */ }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const totalCostEur = positions.reduce((sum, p) => sum + toEur(p.quantity * p.purchasePrice, p.currency), 0)
   const staticValueEur = positions.reduce((sum, p) => sum + toEur(p.quantity * p.currentPrice, p.currency), 0)
@@ -171,9 +185,10 @@ export default function Dashboard() {
                 const live = indexQuotes.get(idx.symbol)
                 const price = live ? live.price : idx.fallback
                 const change = live ? live.changePercent : idx.changePercent
-                const shape = SPARK_SHAPES[idx.symbol] || [0.95, 0.97, 0.96, 0.98, 0.99, 0.98, 0.99, 1]
-                const nowD = Date.now()
-                const sparkData = shape.map((r, si) => ({ v: +(price * r).toFixed(2), ts: nowD - (shape.length - 1 - si) * 24 * 60 * 60 * 1000 }))
+                const history = indexHistory[idx.symbol]
+                const sparkData = history && history.length >= 2
+                  ? history.map((pt) => ({ v: pt.price, ts: pt.ts }))
+                  : []
                 return (
                   <div key={idx.symbol} className="rounded-xl border border-slate-700 bg-slate-800 p-3">
                     <div className="flex justify-between items-start mb-1.5">
@@ -192,19 +207,25 @@ export default function Dashboard() {
                         {change >= 0 ? '+' : ''}{change.toFixed(2)}%
                       </span>
                     </div>
-                    <ResponsiveContainer width="100%" height={40}>
-                      <LineChart data={sparkData}>
-                        <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
-                        <YAxis domain={['dataMin', 'dataMax']} hide />
-                        <Line type="monotone" dataKey="v" stroke={change >= 0 ? '#22c55e' : '#f87171'} strokeWidth={2} dot={false} />
-                        <Tooltip
-                          contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
-                          itemStyle={{ color: 'var(--text-primary)' }}
-                          labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                          formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.label]}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {sparkData.length >= 2 ? (
+                      <ResponsiveContainer width="100%" height={40}>
+                        <LineChart data={sparkData}>
+                          <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} hide />
+                          <YAxis domain={['dataMin', 'dataMax']} hide />
+                          <Line type="monotone" dataKey="v" stroke={change >= 0 ? '#22c55e' : '#f87171'} strokeWidth={2} dot={false} />
+                          <Tooltip
+                            contentStyle={{ background: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px', fontSize: '11px', color: 'var(--text-primary)' }}
+                            itemStyle={{ color: 'var(--text-primary)' }}
+                            labelFormatter={(v: number) => new Date(v).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                            formatter={(v: number) => [v.toLocaleString('fr-FR'), idx.label]}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-10 flex items-center">
+                        <div className="h-px w-full bg-slate-700" />
+                      </div>
+                    )}
                   </div>
                 )
               })}

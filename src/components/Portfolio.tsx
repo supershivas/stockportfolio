@@ -5,7 +5,7 @@ import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, Ch
 import TransactionHistory from './TransactionHistory'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from './StockSearchInput'
-import { fetchMultipleQuotes, fetchEurUsdRate, isApiConfigured } from '../services/marketData'
+import { fetchMultipleQuotes, fetchEurUsdRate } from '../services/marketData'
 import { appendPrice, getHistory, PricePoint } from '../services/priceHistory'
 import { syncToCloud } from '../services/cloudBackup'
 import {
@@ -168,7 +168,7 @@ export default function Portfolio() {
   const handleDragEnd = () => { dragIdRef.current = null; setDragOverId(null) }
 
   useEffect(() => {
-    if (isApiConfigured()) fetchEurUsdRate().then(setEurUsd)
+    fetchEurUsdRate().then(setEurUsd)
     const ts = getLastUpdateTs()
     if (ts === 0 || Date.now() - ts > WEEK_MS) setShowUpdateReminder(true)
   }, [])

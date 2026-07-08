@@ -39,15 +39,15 @@ export default function ApiSettings({ onClose }: Props) {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Key size={18} className="text-accent/80" />
-            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Données en temps réel</h2>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Réglages données de marché</h2>
           </div>
           <button onClick={onClose} style={{ color: 'var(--text-muted)' }} className="hover:text-accent/80 transition-colors"><X size={20} /></button>
         </div>
 
         <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: 'var(--card-bg-2)' }}>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Connectez <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Finnhub</span> pour obtenir les cours en temps réel.
-            L'API gratuite offre 60 requêtes/minute.
+            Les cours en temps réel fonctionnent déjà sans configuration, via <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Yahoo Finance</span> (gratuit, aucune clé requise).
+            Ajouter une clé <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Finnhub</span> (gratuite) est optionnel — elle augmente la limite de requêtes (60/min) et active le fil d'actualités financières en direct.
           </p>
           <a
             href="https://finnhub.io/register"

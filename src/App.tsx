@@ -7,6 +7,7 @@ import ApiSettings from './components/ApiSettings'
 import JosePublic from './components/JosePublic'
 import Login, { isAuthenticated } from './components/Login'
 import { isApiConfigured } from './services/marketData'
+import { useLiveQuotes } from './hooks/useLiveQuotes'
 import { restoreFromCloud, getLastSyncedAt, setLastSyncedAt } from './services/cloudBackup'
 import { usePortfolioStore } from './store/portfolioStore'
 import Dashboard from './components/Dashboard'
@@ -119,6 +120,13 @@ function AppMain() {
   const positions = usePortfolioStore((s) => s.positions)
   const hydrateFromCloud = usePortfolioStore((s) => s.hydrateFromCloud)
   const restoredRef = useRef(false)
+
+  // Canary quote — used only to know whether live market data is actually
+  // reachable right now (Finnhub or the Yahoo Finance fallback), instead of
+  // the previous, misleading "is a Finnhub key configured" check. The app
+  // fetches real prices via Yahoo even with zero configuration.
+  const { quotes: canaryQuotes, lastUpdated: canaryLastUpdated } = useLiveQuotes(['^GSPC'])
+  const hasLiveData = canaryQuotes.size > 0
 
   // Poll the locally-recorded last-sync timestamp so the sidebar's "Mis à
   // jour" label stays fresh as background syncs complete, without needing
@@ -258,15 +266,19 @@ function AppMain() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowApiSettings(true)}
+              title={canaryLastUpdated ? `Cours vérifiés à ${canaryLastUpdated.toLocaleTimeString('fr-FR', { timeStyle: 'short' })}` : undefined}
               className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors"
               style={{ border: '1px solid var(--sidebar-border)', color: 'var(--sidebar-muted)' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }}
             >
-              {apiConfigured
+              {hasLiveData
                 ? <Wifi size={14} className="text-green-400 shrink-0" />
                 : <WifiOff size={14} className="shrink-0" style={{ color: 'var(--sidebar-icon)' }} />}
-              <span className="flex-1 text-left">{apiConfigured ? 'Temps réel actif' : 'Données simulées'}</span>
+              <span className="flex-1 text-left">
+                {hasLiveData ? 'Temps réel actif' : 'Connexion…'}
+                {apiConfigured && hasLiveData && <span className="opacity-60"> · Finnhub</span>}
+              </span>
               <span title={cloudStatus === 'ok' ? 'Sauvegarde cloud active' : cloudStatus === 'syncing' ? 'Synchronisation...' : 'Pas de sauvegarde'}>
                 <Cloud
                   size={12}

@@ -146,6 +146,7 @@ export const INDICATOR_TICKERS = [
   { symbol: '^VIX', label: 'VIX' },
   { symbol: 'GC=F', label: 'Or (Gold)' },
   { symbol: 'DX=F', label: 'Dollar Index' },
+  { symbol: '^TNX', label: 'US 10Y' },
 ]
 
 export async function testApiKey(key: string): Promise<boolean> {
