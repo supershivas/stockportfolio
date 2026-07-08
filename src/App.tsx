@@ -115,9 +115,20 @@ function AppMain() {
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
   const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
+  const [lastSyncDisplay, setLastSyncDisplay] = useState<number>(0)
   const positions = usePortfolioStore((s) => s.positions)
   const hydrateFromCloud = usePortfolioStore((s) => s.hydrateFromCloud)
   const restoredRef = useRef(false)
+
+  // Poll the locally-recorded last-sync timestamp so the sidebar's "Mis à
+  // jour" label stays fresh as background syncs complete, without needing
+  // every sync call site to push state up into this component.
+  useEffect(() => {
+    const tick = () => setLastSyncDisplay(getLastSyncedAt())
+    tick()
+    const interval = setInterval(tick, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light')
@@ -276,6 +287,11 @@ function AppMain() {
               {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
             </button>
           </div>
+          {lastSyncDisplay > 0 && (
+            <p className="text-[11px] text-center" style={{ color: 'var(--sidebar-muted)', opacity: 0.6 }}>
+              Mis à jour · {new Date(lastSyncDisplay).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          )}
           <p className="text-xs text-center" style={{ color: 'var(--sidebar-muted)', opacity: 0.4 }}>PortfolioAI v0.1</p>
         </div>
       </aside>
