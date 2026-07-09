@@ -5,7 +5,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 34.68,
+      "currentPrice": 31.4,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -16,7 +16,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 171.44,
+      "currentPrice": 167.52,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Amundi PEA Euro Court Terme UCITS ETF",
       "quantity": 10,
       "purchasePrice": 9.751,
-      "currentPrice": 9.755,
+      "currentPrice": 9.76,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": false,
@@ -38,7 +38,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 6.123,
+      "currentPrice": 6.073,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -49,7 +49,7 @@
       "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
       "quantity": 18,
       "purchasePrice": 29.341,
-      "currentPrice": 29.83,
+      "currentPrice": 29.475,
       "currency": "EUR",
       "sector": "Aristo",
       "pea": false,
@@ -197,8 +197,8 @@
         "price": 32.59
       },
       {
-        "ts": 1783596944313,
-        "price": 31.4
+        "ts": 1783597556276,
+        "price": 31.33
       }
     ],
     "DCAM.PA": [
@@ -319,8 +319,8 @@
         "price": 6.043
       },
       {
-        "ts": 1783596944314,
-        "price": 6.073
+        "ts": 1783597556277,
+        "price": 6.074
       }
     ],
     "C50.PA": [
@@ -441,8 +441,8 @@
         "price": 166.48
       },
       {
-        "ts": 1783596944314,
-        "price": 167.52
+        "ts": 1783597556277,
+        "price": 167.4
       }
     ],
     "OBLI.PA": [
@@ -467,7 +467,7 @@
         "price": 9.758
       },
       {
-        "ts": 1783596944314,
+        "ts": 1783597556277,
         "price": 9.76
       }
     ],
@@ -497,11 +497,11 @@
         "price": 29.495
       },
       {
-        "ts": 1783596944314,
+        "ts": 1783597556277,
         "price": 29.475
       }
     ]
   },
   "transactions": [],
-  "updatedAt": 1783596947793
+  "updatedAt": 1783597560313
 }
