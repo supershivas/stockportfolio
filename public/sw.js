@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portfolioai-shell-v1'
+const CACHE_NAME = 'portfolioai-shell-v2'
 const SHELL_ASSETS = ['/', '/manifest.webmanifest']
 
 self.addEventListener('install', (event) => {

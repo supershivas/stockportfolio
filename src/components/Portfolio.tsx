@@ -7,7 +7,6 @@ import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from './StockSearchInput'
 import { fetchMultipleQuotes, fetchEurUsdRate } from '../services/marketData'
 import { appendPrice, getHistory, PricePoint } from '../services/priceHistory'
-import { syncToCloud } from '../services/cloudBackup'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine,
 } from 'recharts'
@@ -208,7 +207,6 @@ export default function Portfolio() {
       if (modal.data.currentPrice > 0) {
         appendPrice(modal.data.ticker, modal.data.currentPrice)
         setHistoryVersion((v) => v + 1)
-        syncToCloud(positions)
       }
       showToast(`✓ ${modal.data.ticker} ajouté au portefeuille`)
     } else if (modal.id) {
@@ -315,7 +313,6 @@ export default function Portfolio() {
         updated++
       }
     })
-    if (updated > 0) syncToCloud(positions)
     setRefreshing(false)
     if (updated > 0) {
       markUpdated()

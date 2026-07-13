@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   LayoutDashboard, Briefcase, TrendingUp, Building2, BarChart3, Shield,
   TrendingDown, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud, Menu,
@@ -117,7 +117,6 @@ function AppMain() {
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
   const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
   const [lastSyncDisplay, setLastSyncDisplay] = useState<number>(0)
-  const positions = usePortfolioStore((s) => s.positions)
   const hydrateFromCloud = usePortfolioStore((s) => s.hydrateFromCloud)
   const restoredRef = useRef(false)
 
@@ -149,26 +148,46 @@ function AppMain() {
   }, [])
 
   // Cloud (GitHub) is the source of truth across devices/browsers, since each
-  // browser's localStorage is an isolated island. On startup, pull cloud data
-  // whenever it's newer than what this device last pushed — this is what lets
-  // an edit made in Firefox show up in Chrome or on the iPhone. Local wins only
+  // browser's localStorage is an isolated island. Pull cloud data whenever
+  // it's newer than what this device last pushed — this is what lets an
+  // edit made in Firefox show up in Chrome or on the iPhone. Local wins only
   // if this device has unsynced local changes newer than the cloud snapshot.
-  useEffect(() => {
-    if (restoredRef.current) return
-    restoredRef.current = true
+  //
+  // A single run on mount isn't enough: a tab or an installed mobile PWA can
+  // stay open for hours, its in-memory state drifting further behind the
+  // cloud the whole time (and, worse, feeding that stale state back up on
+  // its next sync). So this also re-checks whenever the tab regains focus
+  // or visibility, and on a slow background interval as a fallback.
+  const checkCloud = useCallback(() => {
     setCloudStatus('syncing')
     restoreFromCloud().then((data) => {
       const lastSyncedAt = getLastSyncedAt()
       const cloudIsNewer = (data?.updatedAt ?? 0) > lastSyncedAt
-      const localIsEmpty = positions.length === 0
+      const localIsEmpty = usePortfolioStore.getState().positions.length === 0
       if (data?.positions && (cloudIsNewer || localIsEmpty)) {
         hydrateFromCloud(data.positions, data.transactions ?? [])
         if (data.updatedAt) setLastSyncedAt(data.updatedAt)
       }
       setCloudStatus('ok')
     }).catch(() => setCloudStatus('idle'))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [hydrateFromCloud])
+
+  useEffect(() => {
+    if (restoredRef.current) return
+    restoredRef.current = true
+    checkCloud()
+
+    const onVisible = () => { if (document.visibilityState === 'visible') checkCloud() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', checkCloud)
+    const interval = setInterval(checkCloud, 3 * 60 * 1000)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', checkCloud)
+      clearInterval(interval)
+    }
+  }, [checkCloud])
 
   const renderPage = () => {
     switch (page) {
