@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePortfolioStore } from '../store/portfolioStore'
 import { Position } from '../types'
-import { Plus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical, History } from 'lucide-react'
+import { Plus, Minus, Pencil, Trash2, X, Check, RefreshCw, AlertCircle, ChevronDown, ChevronUp, GripVertical, History } from 'lucide-react'
 import TransactionHistory from './TransactionHistory'
 import StockSearchInput from './StockSearchInput'
 import { StockSearchResult } from './StockSearchInput'
@@ -149,6 +149,7 @@ export default function Portfolio() {
   const [toast, setToast] = useState<string | null>(null)
   const [sortCol, setSortCol] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [tradeModal, setTradeModal] = useState<{ id: string; type: 'buy' | 'sell'; quantity: number; price: number } | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const dragIdRef = useRef<string | null>(null)
 
@@ -231,6 +232,38 @@ export default function Portfolio() {
   const showToast = (msg: string) => {
     setToast(msg)
     setTimeout(() => setToast(null), 3500)
+  }
+
+  const openTrade = (pos: Position, type: 'buy' | 'sell') => {
+    setTradeModal({ id: pos.id, type, quantity: 0, price: pos.currentPrice })
+  }
+
+  const handleTrade = () => {
+    if (!tradeModal) return
+    const pos = positions.find((p) => p.id === tradeModal.id)
+    if (!pos) return
+    const qty = tradeModal.quantity
+    const price = tradeModal.price
+    if (qty <= 0 || price <= 0) return
+
+    if (tradeModal.type === 'buy') {
+      const newQty = pos.quantity + qty
+      // Weighted average purchase price across the old and new lots
+      const newAvgPrice = (pos.quantity * pos.purchasePrice + qty * price) / newQty
+      updatePosition(pos.id, { quantity: newQty, purchasePrice: newAvgPrice, currentPrice: price })
+      appendPrice(pos.ticker, price)
+      showToast(`✓ +${qty} ${pos.ticker} achetées · PRU recalculé à ${newAvgPrice.toFixed(2)} ${pos.currency}`)
+    } else {
+      const newQty = pos.quantity - qty
+      if (newQty < 0) return
+      updatePosition(pos.id, { quantity: newQty, currentPrice: price })
+      appendPrice(pos.ticker, price)
+      const pnl = (price - pos.purchasePrice) * qty
+      showToast(`✓ ${qty} ${pos.ticker} vendues · ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} ${pos.currency} réalisé`)
+    }
+    setHistoryVersion((v) => v + 1)
+    markUpdated()
+    setTradeModal(null)
   }
 
   const handleSelectStock = useCallback(async (stock: StockSearchResult) => {
@@ -432,6 +465,18 @@ export default function Portfolio() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={() => openTrade(p, 'buy')}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.25)' }}
+                    ><Plus size={12} className="inline mr-1" />Acheter</button>
+                    <button
+                      onClick={() => openTrade(p, 'sell')}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: 'rgba(251,146,60,0.12)', color: '#fb923c', border: '1px solid rgba(251,146,60,0.25)' }}
+                    ><Minus size={12} className="inline mr-1" />Vendre</button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
                       onClick={() => { setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id }); setAutoFilled(false) }}
                       className="flex-1 py-2 rounded-lg text-xs font-medium transition-colors"
                       style={{ background: 'var(--card-bg-2)', color: 'var(--text-secondary)', border: '1px solid var(--card-border)' }}
@@ -562,13 +607,29 @@ export default function Portfolio() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
+                            onClick={() => openTrade(p, 'buy')}
+                            title="Acheter plus de titres"
+                            className="p-1.5 rounded hover:bg-green-500/20 text-slate-400 hover:text-green-400 transition-colors"
+                          >
+                            <Plus size={14} />
+                          </button>
+                          <button
+                            onClick={() => openTrade(p, 'sell')}
+                            title="Vendre des titres"
+                            className="p-1.5 rounded hover:bg-orange-500/20 text-slate-400 hover:text-orange-400 transition-colors"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <button
                             onClick={() => { setModal({ type: 'edit', data: { ticker: p.ticker, name: p.name, quantity: p.quantity, purchasePrice: p.purchasePrice, currentPrice: p.currentPrice, currency: p.currency, sector: p.sector }, id: p.id }); setAutoFilled(false) }}
+                            title="Modifier"
                             className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
                           >
                             <Pencil size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteId(p.id)}
+                            title="Supprimer"
                             className="p-1.5 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
                           >
                             <Trash2 size={14} />
@@ -711,6 +772,110 @@ export default function Portfolio() {
           </div>
         </div>
       )}
+
+      {tradeModal && (() => {
+        const pos = positions.find((p) => p.id === tradeModal.id)
+        if (!pos) return null
+        const isBuy = tradeModal.type === 'buy'
+        const newQty = isBuy ? pos.quantity + tradeModal.quantity : pos.quantity - tradeModal.quantity
+        const newAvgPrice = isBuy && tradeModal.quantity > 0
+          ? (pos.quantity * pos.purchasePrice + tradeModal.quantity * tradeModal.price) / newQty
+          : pos.purchasePrice
+        const realizedPnl = !isBuy ? (tradeModal.price - pos.purchasePrice) * tradeModal.quantity : 0
+        const invalid = tradeModal.quantity <= 0 || tradeModal.price <= 0 || (!isBuy && tradeModal.quantity > pos.quantity)
+
+        return (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-semibold text-white">
+                  {isBuy ? 'Acheter' : 'Vendre'} {pos.ticker}
+                </h2>
+                <button onClick={() => setTradeModal(null)} className="text-slate-400 hover:text-white"><X size={20} /></button>
+              </div>
+              <p className="text-slate-500 text-xs mb-5">{pos.name} · position actuelle : {pos.quantity} @ {pos.purchasePrice.toFixed(2)} {pos.currency}</p>
+
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  {(['buy', 'sell'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTradeModal((m) => m ? { ...m, type: t } : m)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        tradeModal.type === t
+                          ? t === 'buy' ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                          : 'bg-slate-700 text-slate-400 border border-slate-600'
+                      }`}
+                    >
+                      {t === 'buy' ? 'Achat' : 'Vente'}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Quantité {isBuy ? 'achetée' : 'vendue'}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={isBuy ? undefined : pos.quantity}
+                    value={tradeModal.quantity || ''}
+                    onChange={(e) => setTradeModal((m) => m ? { ...m, quantity: parseFloat(e.target.value) || 0 } : m)}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                    placeholder="ex: 10"
+                  />
+                  {!isBuy && <p className="text-xs text-slate-500 mt-1">Max : {pos.quantity} titres détenus</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Prix / titre ({pos.currency})</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={tradeModal.price || ''}
+                    onChange={(e) => setTradeModal((m) => m ? { ...m, price: parseFloat(e.target.value) || 0 } : m)}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                {tradeModal.quantity > 0 && tradeModal.price > 0 && (
+                  <div className="rounded-lg bg-slate-900 border border-slate-700 p-3 text-xs space-y-1.5">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Nouvelle quantité</span>
+                      <span className="text-white font-medium">{newQty}</span>
+                    </div>
+                    {isBuy ? (
+                      <div className="flex justify-between text-slate-400">
+                        <span>Nouveau PRU (moyenne pondérée)</span>
+                        <span className="text-white font-medium">{newAvgPrice.toFixed(2)} {pos.currency}</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between text-slate-400">
+                        <span>P&L réalisé sur la vente</span>
+                        <span className={`font-medium ${realizedPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {realizedPnl >= 0 ? '+' : ''}{realizedPnl.toFixed(2)} {pos.currency}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-5">
+                <button onClick={() => setTradeModal(null)} className="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:text-white text-sm transition-colors">Annuler</button>
+                <button
+                  onClick={handleTrade}
+                  disabled={invalid}
+                  className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40"
+                  style={{ background: isBuy ? '#22c55e' : '#f97316', color: '#ffffff' }}
+                >
+                  Confirmer {isBuy ? "l'achat" : 'la vente'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* end positions tab */}
       </>}
