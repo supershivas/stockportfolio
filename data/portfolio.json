@@ -5,7 +5,7 @@
       "name": "Avio S.p.A.",
       "quantity": 3,
       "purchasePrice": 30.4,
-      "currentPrice": 30.34,
+      "currentPrice": 29.92,
       "currency": "EUR",
       "sector": "Espace",
       "pea": false,
@@ -16,7 +16,7 @@
       "name": "Amundi Core EURO STOXX 50 UCITS ETF EUR Acc",
       "quantity": 3,
       "purchasePrice": 169.88,
-      "currentPrice": 167.92,
+      "currentPrice": 168.62,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": true,
@@ -27,7 +27,7 @@
       "name": "Amundi PEA Euro Court Terme UCITS ETF",
       "quantity": 10,
       "purchasePrice": 9.751,
-      "currentPrice": 9.762,
+      "currentPrice": 9.765,
       "currency": "EUR",
       "sector": "ETF Europe",
       "pea": false,
@@ -38,7 +38,7 @@
       "name": "Amundi MSCI World UCITS ETF (PEA)",
       "quantity": 596,
       "purchasePrice": 5.8991,
-      "currentPrice": 6.11,
+      "currentPrice": 6.129,
       "currency": "EUR",
       "sector": "ETF Monde",
       "pea": true,
@@ -49,7 +49,7 @@
       "name": "State Street SPDR S&P Euro Dividend Aristocrats UCITS ETF",
       "quantity": 32,
       "purchasePrice": 29.53525,
-      "currentPrice": 29.82,
+      "currentPrice": 29.905,
       "currency": "EUR",
       "sector": "Aristo",
       "pea": false,
@@ -60,7 +60,7 @@
       "name": "Amundi PEA Émergent (MSCI Emerging) ESG Transition UCITS ETF Acc",
       "quantity": 10,
       "purchasePrice": 35.185,
-      "currentPrice": 35.32,
+      "currentPrice": 34.835,
       "currency": "EUR",
       "sector": "Emergents",
       "pea": false,
@@ -306,6 +306,10 @@
       {
         "ts": 1784033849768,
         "price": 167.92
+      },
+      {
+        "ts": 1784218197803,
+        "price": 168.62
       }
     ],
     "DCAM.PA": [
@@ -436,6 +440,10 @@
       {
         "ts": 1784033849768,
         "price": 6.11
+      },
+      {
+        "ts": 1784218197804,
+        "price": 6.129
       }
     ],
     "AVIO.MI": [
@@ -478,6 +486,10 @@
       {
         "ts": 1784033849767,
         "price": 30.34
+      },
+      {
+        "ts": 1784218197802,
+        "price": 29.92
       }
     ],
     "SPYW.DE": [
@@ -516,6 +528,10 @@
       {
         "ts": 1784033849768,
         "price": 29.82
+      },
+      {
+        "ts": 1784218197804,
+        "price": 29.905
       }
     ],
     "PAEEM.PA": [
@@ -530,6 +546,10 @@
       {
         "ts": 1784033849768,
         "price": 35.32
+      },
+      {
+        "ts": 1784218197804,
+        "price": 34.835
       }
     ],
     "OBLI.PA": [
@@ -564,6 +584,10 @@
       {
         "ts": 1784033849768,
         "price": 9.762
+      },
+      {
+        "ts": 1784218197804,
+        "price": 9.765
       }
     ]
   },
@@ -640,5 +664,5 @@
       "currency": "EUR"
     }
   ],
-  "updatedAt": 1784033853219
+  "updatedAt": 1784218201212
 }
