@@ -4,6 +4,8 @@ import {
   TrendingDown, X, ChevronRight, Settings, Wifi, WifiOff, DollarSign, Sun, Moon, Cloud, Menu,
 } from 'lucide-react'
 import ApiSettings from './components/ApiSettings'
+import AppSettings from './components/AppSettings'
+import { startUpdateCheck, loadVersion } from './app-update.js'
 import JosePublic from './components/JosePublic'
 import Login, { isAuthenticated } from './components/Login'
 import { isApiConfigured } from './services/marketData'
@@ -113,6 +115,9 @@ function AppMain() {
   const [page, setPage] = useState<Page>('portfolio')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showApiSettings, setShowApiSettings] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [version, setVersion] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured())
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
   const [cloudStatus, setCloudStatus] = useState<'idle' | 'syncing' | 'ok'>('idle')
@@ -189,6 +194,52 @@ function AppMain() {
     }
   }, [checkCloud])
 
+  // Version (public/version.json) et mise à jour automatique : conventions
+  // du design system.
+  useEffect(() => {
+    const url = `${import.meta.env.BASE_URL}version.json`
+    loadVersion(url).then(setVersion)
+    startUpdateCheck({
+      versionUrl: url,
+      onUpdated: (v) => {
+        setToast(`Mis à jour en v${v}`)
+        setTimeout(() => setToast(null), 3500)
+      },
+    })
+  }, [])
+
+  // Clic sur le nom de l'app : retour à l'écran d'accueil (Positions),
+  // réglages et menu refermés, sans recharger.
+  function goHome(e?: React.MouseEvent) {
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)) return
+    e?.preventDefault()
+    setShowSettings(false)
+    setShowApiSettings(false)
+    setSidebarOpen(false)
+    setPage('portfolio')
+  }
+
+  const brand = (
+    <a href={import.meta.env.BASE_URL} onClick={goHome} className="flex items-center gap-2 min-h-[44px]" title="Revenir à l'accueil">
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent)' }}>
+        <TrendingUp size={15} style={{ color: '#ffffff' }} />
+      </div>
+      <span className="font-bold text-base font-title" style={{ color: 'var(--sidebar-fg)' }}>PortfolioAI</span>
+    </a>
+  )
+
+  const gear = (
+    <button
+      onClick={() => { setShowSettings(true); setSidebarOpen(false) }}
+      className="w-11 h-11 -mr-2 flex items-center justify-center rounded-md"
+      style={{ color: 'var(--sidebar-muted)' }}
+      title="Réglages"
+      aria-label="Réglages"
+    >
+      <Settings size={18} />
+    </button>
+  )
+
   const renderPage = () => {
     switch (page) {
       case 'dashboard':      return <Dashboard />
@@ -205,6 +256,13 @@ function AppMain() {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--content-bg)', color: 'var(--text-primary)' }}>
       {showApiSettings && <ApiSettings onClose={() => { setShowApiSettings(false); setApiConfigured(isApiConfigured()) }} />}
+      {showSettings && (
+        <AppSettings
+          version={version}
+          onClose={() => setShowSettings(false)}
+          onOpenMarketSettings={() => { setShowSettings(false); setShowApiSettings(true) }}
+        />
+      )}
 
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -220,15 +278,13 @@ function AppMain() {
           className="flex items-center justify-between px-4 py-4"
           style={{ borderBottom: '1px solid var(--sidebar-border)', paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}
         >
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--accent)' }}>
-              <TrendingUp size={15} style={{ color: '#ffffff' }} />
-            </div>
-            <span className="font-bold text-base font-title" style={{ color: 'var(--sidebar-fg)' }}>PortfolioAI</span>
+          {brand}
+          <div className="flex items-center">
+            <div className="hidden lg:block">{gear}</div>
+            <button className="lg:hidden w-11 h-11 -mr-2 flex items-center justify-center" style={{ color: 'var(--sidebar-muted)' }} onClick={() => setSidebarOpen(false)} aria-label="Fermer le menu">
+              <X size={18} />
+            </button>
           </div>
-          <button className="lg:hidden" style={{ color: 'var(--sidebar-muted)' }} onClick={() => setSidebarOpen(false)}>
-            <X size={18} />
-          </button>
         </div>
 
         {/* Nav groups */}
@@ -323,12 +379,20 @@ function AppMain() {
               Mis à jour · {new Date(lastSyncDisplay).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </p>
           )}
-          <p className="text-xs text-center" style={{ color: 'var(--sidebar-muted)', opacity: 0.4 }}>PortfolioAI v0.1</p>
+          {version && <p className="text-xs text-center" style={{ color: 'var(--sidebar-muted)', opacity: 0.4 }}>PortfolioAI v{version}</p>}
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* En-tête mobile : nom de l'app à gauche, réglages à droite */}
+        <header
+          className="lg:hidden flex items-center justify-between px-4 shrink-0"
+          style={{ background: 'var(--sidebar-bg)', borderBottom: '1px solid var(--sidebar-border)', paddingTop: 'env(safe-area-inset-top)' }}
+        >
+          {brand}
+          {gear}
+        </header>
         <main
           className="flex-1 overflow-y-auto p-4 lg:p-6"
           style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
@@ -376,6 +440,13 @@ function AppMain() {
           </button>
         </nav>
       </div>
+
+      {toast && (
+        <div role="status" className="fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 text-sm px-4 py-2.5 rounded-lg shadow-lg"
+          style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)', border: '1px solid var(--sidebar-border)' }}>
+          {toast}
+        </div>
+      )}
     </div>
   )
 }
